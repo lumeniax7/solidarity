@@ -87,7 +87,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <p className="mt-3 text-sm leading-6 text-[#718078]">Connectez-vous pour consulter les cotisations, le solde commun et les mouvements familiaux.</p>
           <form className="mt-7 space-y-3 text-left" onSubmit={async (event) => { event.preventDefault(); setAuthSubmitting(true); setAuthNotice(""); try { if (authMode === "signup") { const result = await signUp(authEmail, authPassword, authName); if (!result.session) setAuthNotice("Compte créé. Vérifiez votre e-mail pour confirmer l’inscription."); } else { await signIn(authEmail, authPassword); } } catch {} finally { setAuthSubmitting(false); } }}>
             {authMode === "signup" && <Input value={authName} onChange={(event) => setAuthName(event.target.value)} placeholder="Nom complet" required className="h-11 rounded-xl" />}
-            <Input type="email" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} placeholder="Adresse e-mail" required className="h-11 rounded-xl" />
+            <Input type="text" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} placeholder="Identifiant : admin ou users" required className="h-11 rounded-xl" />
             <Input type="password" value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} placeholder="Mot de passe (6 caractères minimum)" minLength={6} required className="h-11 rounded-xl" />
             {(authError || undefined) && <p className="rounded-xl bg-[#fff2ef] px-3 py-2 text-xs leading-5 text-[#a64e43]">{authError?.message}</p>}
             {authNotice && <p className="rounded-xl bg-[#e8f5ec] px-3 py-2 text-xs leading-5 text-[#23734c]">{authNotice}</p>}

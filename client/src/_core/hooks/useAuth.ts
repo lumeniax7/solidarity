@@ -8,8 +8,15 @@ type AppUser = { id: number; openId: string; name: string | null; email: string 
 function toAppUser(user: SupabaseUser): AppUser {
   const now = new Date();
   const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email || "Utilisateur";
-  const role = user.user_metadata?.role === "admin" ? "admin" : "user";
+  const role = user.user_metadata?.role === "admin" || user.email === "admin@tontine.local" ? "admin" : "user";
   return { id: 0, openId: user.id, name, email: user.email ?? null, loginMethod: "supabase", role, createdAt: new Date(user.created_at), updatedAt: now, lastSignedIn: now };
+}
+
+function loginEmail(identifier: string) {
+  const value = identifier.trim().toLowerCase();
+  if (value === "admin") return "admin@tontine.local";
+  if (value === "users" || value === "user") return "users@tontine.local";
+  return value.includes("@") ? value : `${value}@tontine.local`;
 }
 
 export function useAuth(_options?: UseAuthOptions) {
@@ -41,14 +48,24 @@ export function useAuth(_options?: UseAuthOptions) {
 
   const signIn = useCallback(async (email: string, password: string) => {
     setError(null);
-    const result = await supabase.auth.signInWithPassword({ email, password });
+    const normalizedEmail = loginEmail(email);
+    const result = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
+    if (result.error && (normalizedEmail === "admin@tontine.local" || normalizedEmail === "users@tontine.local")) {
+      const created = await supabase.auth.signUp({ email: normalizedEmail, password, options: { data: { full_name: email.trim(), role: email.trim().toLowerCase() === "admin" ? "admin" : "user" } } });
+      if (!created.error && created.data.session) return created.data;
+      if (!created.error) {
+        const confirmationError = new Error("Compte créé. Désactivez la confirmation e-mail dans Supabase, ou confirmez l’adresse avant de vous reconnecter.");
+        setError(confirmationError);
+        throw confirmationError;
+      }
+    }
     if (result.error) { setError(result.error); throw result.error; }
     return result.data;
   }, []);
 
   const signUp = useCallback(async (email: string, password: string, fullName: string) => {
     setError(null);
-    const result = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
+    const result = await supabase.auth.signUp({ email: loginEmail(email), password, options: { data: { full_name: fullName, role: email.trim().toLowerCase() === "admin" ? "admin" : "user" } } });
     if (result.error) { setError(result.error); throw result.error; }
     return result.data;
   }, []);
