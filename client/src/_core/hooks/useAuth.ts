@@ -19,6 +19,13 @@ function loginEmail(identifier: string) {
   return value.includes("@") ? value : `${value}@tontine.local`;
 }
 
+function supabasePassword(identifier: string, password: string) {
+  const value = identifier.trim().toLowerCase();
+  if (value === "admin" && password === "admin") return "TontineAdmin2026!";
+  if ((value === "users" || value === "user") && password === "users") return "TontineUsers2026!";
+  return password;
+}
+
 export function useAuth(_options?: UseAuthOptions) {
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,9 +56,10 @@ export function useAuth(_options?: UseAuthOptions) {
   const signIn = useCallback(async (email: string, password: string) => {
     setError(null);
     const normalizedEmail = loginEmail(email);
-    const result = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
+    const normalizedPassword = supabasePassword(email, password);
+    const result = await supabase.auth.signInWithPassword({ email: normalizedEmail, password: normalizedPassword });
     if (result.error && (normalizedEmail === "admin@tontine.local" || normalizedEmail === "users@tontine.local")) {
-      const created = await supabase.auth.signUp({ email: normalizedEmail, password, options: { data: { full_name: email.trim(), role: email.trim().toLowerCase() === "admin" ? "admin" : "user" } } });
+      const created = await supabase.auth.signUp({ email: normalizedEmail, password: normalizedPassword, options: { data: { full_name: email.trim(), role: email.trim().toLowerCase() === "admin" ? "admin" : "user" } } });
       if (!created.error && created.data.session) return created.data;
       if (!created.error) {
         const confirmationError = new Error("Compte créé. Désactivez la confirmation e-mail dans Supabase, ou confirmez l’adresse avant de vous reconnecter.");
@@ -65,7 +73,7 @@ export function useAuth(_options?: UseAuthOptions) {
 
   const signUp = useCallback(async (email: string, password: string, fullName: string) => {
     setError(null);
-    const result = await supabase.auth.signUp({ email: loginEmail(email), password, options: { data: { full_name: fullName, role: email.trim().toLowerCase() === "admin" ? "admin" : "user" } } });
+    const result = await supabase.auth.signUp({ email: loginEmail(email), password: supabasePassword(email, password), options: { data: { full_name: fullName, role: email.trim().toLowerCase() === "admin" ? "admin" : "user" } } });
     if (result.error) { setError(result.error); throw result.error; }
     return result.data;
   }, []);
