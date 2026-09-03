@@ -19,7 +19,6 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { startLogin } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
 import {
   ArrowDownToLine,
@@ -40,6 +39,7 @@ import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Tableau de bord", path: "/" },
@@ -64,7 +64,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
-  const { loading, user } = useAuth();
+  const { loading, user, signIn, signUp, error: authError } = useAuth();
+  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authName, setAuthName] = useState("");
+  const [authSubmitting, setAuthSubmitting] = useState(false);
+  const [authNotice, setAuthNotice] = useState("");
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
@@ -79,7 +85,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6a7c71]">Caisse Familiale</p>
           <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#17352c]">Votre caisse, en toute clarté.</h1>
           <p className="mt-3 text-sm leading-6 text-[#718078]">Connectez-vous pour consulter les cotisations, le solde commun et les mouvements familiaux.</p>
-          <Button onClick={() => startLogin()} size="lg" className="mt-7 w-full rounded-xl bg-[#0e5b49] text-white hover:bg-[#0a493b]">Se connecter</Button>
+          <form className="mt-7 space-y-3 text-left" onSubmit={async (event) => { event.preventDefault(); setAuthSubmitting(true); setAuthNotice(""); try { if (authMode === "signup") { const result = await signUp(authEmail, authPassword, authName); if (!result.session) setAuthNotice("Compte créé. Vérifiez votre e-mail pour confirmer l’inscription."); } else { await signIn(authEmail, authPassword); } } catch {} finally { setAuthSubmitting(false); } }}>
+            {authMode === "signup" && <Input value={authName} onChange={(event) => setAuthName(event.target.value)} placeholder="Nom complet" required className="h-11 rounded-xl" />}
+            <Input type="email" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} placeholder="Adresse e-mail" required className="h-11 rounded-xl" />
+            <Input type="password" value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} placeholder="Mot de passe (6 caractères minimum)" minLength={6} required className="h-11 rounded-xl" />
+            {(authError || undefined) && <p className="rounded-xl bg-[#fff2ef] px-3 py-2 text-xs leading-5 text-[#a64e43]">{authError?.message}</p>}
+            {authNotice && <p className="rounded-xl bg-[#e8f5ec] px-3 py-2 text-xs leading-5 text-[#23734c]">{authNotice}</p>}
+            <Button type="submit" disabled={authSubmitting} size="lg" className="w-full rounded-xl bg-[#0e5b49] text-white hover:bg-[#0a493b]">{authSubmitting ? <span className="flex items-center justify-center gap-2"><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />Connexion…</span> : authMode === "signup" ? "Créer mon compte" : "Se connecter"}</Button>
+          </form>
+          <button type="button" onClick={() => setAuthMode(authMode === "signin" ? "signup" : "signin")} className="mt-4 text-xs font-semibold text-[#0e5b49] hover:underline">{authMode === "signin" ? "Créer un compte familial" : "J’ai déjà un compte"}</button>
         </div>
       </div>
     );

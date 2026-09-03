@@ -88,10 +88,11 @@ function EmptyState({ icon: Icon, title, body }: { icon: typeof FileText; title:
 export default function Home() {
   const { user } = useAuth();
   const [location] = useLocation();
+  const staticMode = typeof window !== "undefined" && window.location.hostname.endsWith("github.io");
   const [period, setPeriod] = useState(currentMonth);
   const periodInput = useMemo(() => ({ asOf: period }), [period]);
   const utils = trpc.useUtils();
-  const snapshotQuery = trpc.family.snapshot.useQuery(periodInput, { enabled: Boolean(user), refetchOnWindowFocus: false });
+  const snapshotQuery = trpc.family.snapshot.useQuery(periodInput, { enabled: Boolean(user) && !staticMode, refetchOnWindowFocus: false });
   const data = snapshotQuery.data;
   const admin = user?.role === "admin";
 

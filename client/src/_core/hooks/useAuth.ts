@@ -1,98 +1,64 @@
-import { startLogin } from "@/const";
-import { trpc } from "@/lib/trpc";
-import { TRPCClientError } from "@trpc/client";
-import { useCallback, useEffect, useMemo } from "react";
+import { supabase } from "@/lib/supabase";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-type UseAuthOptions = {
-  redirectOnUnauthenticated?: boolean;
-  redirectPath?: string;
-};
+type UseAuthOptions = { redirectOnUnauthenticated?: boolean; redirectPath?: string };
+type AppUser = { id: number; openId: string; name: string | null; email: string | null; loginMethod: string; role: "user" | "admin"; createdAt: Date; updatedAt: Date; lastSignedIn: Date };
 
-export function useAuth(options?: UseAuthOptions) {
-  // Login is started via startLogin() in the effect below, only when we actually
-  // navigate — never during render. startLogin() mints a one-time nonce + writes
-  // the state cookie, so calling it per render would overwrite the cookie and
-  // desync it from an in-flight login's `state`.
-  const { redirectOnUnauthenticated = false, redirectPath } = options ?? {};
-  const utils = trpc.useUtils();
+function toAppUser(user: SupabaseUser): AppUser {
+  const now = new Date();
+  const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email || "Utilisateur";
+  const role = user.user_metadata?.role === "admin" ? "admin" : "user";
+  return { id: 0, openId: user.id, name, email: user.email ?? null, loginMethod: "supabase", role, createdAt: new Date(user.created_at), updatedAt: now, lastSignedIn: now };
+}
 
-  const meQuery = trpc.auth.me.useQuery(undefined, {
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
-
-  const logoutMutation = trpc.auth.logout.useMutation({
-    onSuccess: () => {
-      utils.auth.me.setData(undefined, null);
-    },
-  });
-
-  const logout = useCallback(async () => {
-    try {
-      await logoutMutation.mutateAsync();
-    } catch (error: unknown) {
-      if (
-        error instanceof TRPCClientError &&
-        error.data?.code === "UNAUTHORIZED"
-      ) {
-        return;
-      }
-      throw error;
-    } finally {
-      // Clear the Preview auto-login token mirrored into sessionStorage, so
-      // header-based sessions (Safari ITP / WebView) are logged out too. The
-      // backend cookie is cleared by the logout mutation.
-      try {
-        sessionStorage.removeItem("manus-cookie");
-      } catch {}
-      utils.auth.me.setData(undefined, null);
-      await utils.auth.me.invalidate();
-    }
-  }, [logoutMutation, utils]);
-
-  const state = useMemo(() => {
-    localStorage.setItem(
-      "manus-runtime-user-info",
-      JSON.stringify(meQuery.data)
-    );
-    return {
-      user: meQuery.data ?? null,
-      loading: meQuery.isLoading || logoutMutation.isPending,
-      error: meQuery.error ?? logoutMutation.error ?? null,
-      isAuthenticated: Boolean(meQuery.data),
-    };
-  }, [
-    meQuery.data,
-    meQuery.error,
-    meQuery.isLoading,
-    logoutMutation.error,
-    logoutMutation.isPending,
-  ]);
+export function useAuth(_options?: UseAuthOptions) {
+  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (!redirectOnUnauthenticated) return;
-    if (meQuery.isLoading || logoutMutation.isPending) return;
-    if (state.user) return;
-    if (typeof window === "undefined") return;
-    if (redirectPath && window.location.pathname === redirectPath) return;
+    let mounted = true;
+    supabase.auth.getSession().then(({ data, error: sessionError }) => {
+      if (!mounted) return;
+      if (sessionError) setError(sessionError);
+      setSupabaseUser(data.session?.user ?? null);
+      setLoading(false);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      setSupabaseUser(session?.user ?? null);
+      setLoading(false);
+      setError(null);
+    });
+    return () => { mounted = false; listener.subscription.unsubscribe(); };
+  }, []);
 
-    // Navigate at this moment only. startLogin() mints the nonce + cookie itself.
-    if (redirectPath) {
-      window.location.href = redirectPath;
-    } else {
-      startLogin();
-    }
-  }, [
-    redirectOnUnauthenticated,
-    redirectPath,
-    logoutMutation.isPending,
-    meQuery.isLoading,
-    state.user,
-  ]);
+  const logout = useCallback(async () => {
+    const { error: signOutError } = await supabase.auth.signOut();
+    if (signOutError) { setError(signOutError); throw signOutError; }
+  }, []);
 
-  return {
-    ...state,
-    refresh: () => meQuery.refetch(),
-    logout,
-  };
+  const signIn = useCallback(async (email: string, password: string) => {
+    setError(null);
+    const result = await supabase.auth.signInWithPassword({ email, password });
+    if (result.error) { setError(result.error); throw result.error; }
+    return result.data;
+  }, []);
+
+  const signUp = useCallback(async (email: string, password: string, fullName: string) => {
+    setError(null);
+    const result = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
+    if (result.error) { setError(result.error); throw result.error; }
+    return result.data;
+  }, []);
+
+  const refresh = useCallback(async () => {
+    const { data, error: refreshError } = await supabase.auth.getUser();
+    if (refreshError) setError(refreshError);
+    setSupabaseUser(data.user ?? null);
+  }, []);
+
+  const user = useMemo(() => supabaseUser ? toAppUser(supabaseUser) : null, [supabaseUser]);
+  return { user, loading, error, isAuthenticated: Boolean(user), logout, signIn, signUp, refresh };
 }
