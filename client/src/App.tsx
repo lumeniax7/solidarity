@@ -8,9 +8,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 
 function Router() {
-  return (
-    <WouterRouter base={import.meta.env.BASE_URL}>
-      <Switch>
+  return <Switch>
         <Route path="/" component={Home} />
         <Route path="/members" component={Home} />
         <Route path="/contributions" component={Home} />
@@ -23,13 +21,11 @@ function Router() {
         <Route path="/settings" component={Home} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
-      </Switch>
-    </WouterRouter>
-  );
+  </Switch>;
 }
 
 function App() {
-  return <ErrorBoundary><ThemeProvider defaultTheme="light"><TooltipProvider><Toaster /><DashboardLayout><Router /></DashboardLayout></TooltipProvider></ThemeProvider></ErrorBoundary>;
+  return <ErrorBoundary><ThemeProvider defaultTheme="light"><TooltipProvider><Toaster /><WouterRouter base={import.meta.env.BASE_URL}><DashboardLayout><Router /></DashboardLayout></WouterRouter></TooltipProvider></ThemeProvider></ErrorBoundary>;
 }
 
 export default App;
