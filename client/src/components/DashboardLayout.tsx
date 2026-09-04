@@ -30,8 +30,10 @@ import {
   LayoutDashboard,
   LogOut,
   PanelLeft,
+  Moon,
   Settings2,
   ShieldCheck,
+  Sun,
   WalletCards,
   Users,
 } from "lucide-react";
@@ -112,12 +114,18 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar, setOpenMobile } = useSidebar();
+  const [theme, setTheme] = useState<"light" | "dark">(() => localStorage.getItem("caisse-theme") === "dark" ? "dark" : "light");
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const visibleItems = menuItems.filter((item) => !item.adminOnly || user?.role === "admin");
   const activeMenuItem = visibleItems.find((item) => item.path === location);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    localStorage.setItem("caisse-theme", theme);
+  }, [theme]);
 
   useEffect(() => {
     if (isCollapsed) setIsResizing(false);
@@ -167,7 +175,7 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
           <SidebarFooter className="border-t border-[#dce5dd] p-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild><button className="flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0e5b49]"><Avatar className="h-9 w-9 shrink-0 border-2 border-white shadow-sm"><AvatarFallback className="bg-[#dcefe5] text-xs font-bold text-[#0e5b49]">{user?.name?.charAt(0).toUpperCase() ?? "U"}</AvatarFallback></Avatar><div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden"><p className="truncate text-sm font-semibold text-[#17352c]">{user?.name || "Utilisateur"}</p><p className="mt-0.5 truncate text-[11px] text-[#7b8b82]">{user?.role === "admin" ? "Administrateur" : "Membre"}</p></div></button></DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48"><DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600 focus:text-red-600"><LogOut className="mr-2 h-4 w-4" />Se déconnecter</DropdownMenuItem></DropdownMenuContent>
+              <DropdownMenuContent align="end" className="w-52"><DropdownMenuItem onClick={() => setTheme((value) => value === "light" ? "dark" : "light")} className="cursor-pointer"><span className="mr-2 grid h-4 w-4 place-items-center">{theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}</span>{theme === "light" ? "Mode nuit" : "Mode jour"}</DropdownMenuItem><DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600 focus:text-red-600"><LogOut className="mr-2 h-4 w-4" />Se déconnecter</DropdownMenuItem></DropdownMenuContent>
             </DropdownMenu>
           </SidebarFooter>
         </Sidebar>

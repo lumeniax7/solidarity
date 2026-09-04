@@ -43,18 +43,18 @@
 }
 
 :root {
-  --primary: #0e5b49;
+  --primary: #176b5b;
   --primary-foreground: #ffffff;
   --sidebar-primary: #0e5b49;
   --sidebar-primary-foreground: #ffffff;
   --chart-1: #8bc9a1;
   --chart-2: #0e5b49;
-  --chart-3: #d9f46d;
-  --chart-4: #ee9c8d;
-  --chart-5: #a8752a;
+  --chart-3: #cde86a;
+  --chart-4: #e89988;
+  --chart-5: #c18a4a;
   --radius: 0.7rem;
-  --background: #f7f8f4;
-  --foreground: #17352c;
+  --background: #f6f8f5;
+  --foreground: #19352e;
   --card: #ffffff;
   --card-foreground: #17352c;
   --popover: #ffffff;
@@ -63,13 +63,13 @@
   --secondary-foreground: #466458;
   --muted: #f0f4ef;
   --muted-foreground: #718078;
-  --accent: #e9f5ea;
+  --accent: #e6f3ec;
   --accent-foreground: #17352c;
   --destructive: #b94d43;
   --destructive-foreground: #ffffff;
   --border: #dfe7df;
   --input: #d6e2d8;
-  --ring: #0e5b49;
+  --ring: #176b5b;
   --sidebar: #f4f7f2;
   --sidebar-foreground: #17352c;
   --sidebar-accent: #ffffff;
@@ -79,17 +79,17 @@
 }
 
 .dark {
-  --primary: #d9f46d;
+  --primary: #cde86a;
   --primary-foreground: #17352c;
   --sidebar-primary: #d9f46d;
   --sidebar-primary-foreground: #17352c;
-  --background: #11251e;
-  --foreground: #e6f0e7;
-  --card: #18362b;
+  --background: #101d1a;
+  --foreground: #edf6ef;
+  --card: #19342b;
   --card-foreground: #e6f0e7;
   --popover: #18362b;
   --popover-foreground: #e6f0e7;
-  --secondary: #234638;
+  --secondary: #24483a;
   --secondary-foreground: #c8decf;
   --muted: #203d31;
   --muted-foreground: #a7c1af;
@@ -100,7 +100,7 @@
   --border: #315344;
   --input: #315344;
   --ring: #d9f46d;
-  --sidebar: #102d23;
+  --sidebar: #0d2820;
   --sidebar-foreground: #e6f0e7;
   --sidebar-accent: #234638;
   --sidebar-accent-foreground: #e6f0e7;
@@ -121,6 +121,13 @@
 @layer components {
   .container { width: 100%; margin-left: auto; margin-right: auto; padding-left: 1rem; padding-right: 1rem; }
   .flex { min-height: 0; min-width: 0; }
+  /* Smooth, readable dark mode for the legacy utility colors used by the screens. */
+  .dark body { color-scheme: dark; }
+  .dark [class*="bg-white"] { background-color: var(--card) !important; }
+  .dark [class*="bg-[#f7f8f4]"], .dark [class*="bg-[#f4f7f2]"], .dark [class*="bg-[#f8faf7]"] { background-color: var(--background) !important; }
+  .dark [class*="border-[#dfe7df]"], .dark [class*="border-[#dce5dd]"], .dark [class*="border-[#d6e2d8]"] { border-color: var(--border) !important; }
+  .dark [class*="text-[#17352c]"], .dark [class*="text-[#345347]"], .dark [class*="text-[#4b6558]"] { color: var(--foreground) !important; }
+  .dark input, .dark select, .dark textarea { color: var(--foreground); background-color: var(--card); }
   @media (min-width: 640px) { .container { padding-left: 1.5rem; padding-right: 1.5rem; } }
   @media (min-width: 1024px) { .container { padding-left: 2rem; padding-right: 2rem; max-width: 1280px; } }
 }
