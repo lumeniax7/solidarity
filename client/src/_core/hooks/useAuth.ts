@@ -73,7 +73,7 @@ export function useAuth(_options?: UseAuthOptions) {
 
   const signUp = useCallback(async (email: string, password: string, fullName: string) => {
     setError(null);
-    const result = await supabase.auth.signUp({ email: loginEmail(email), password: supabasePassword(email, password), options: { data: { full_name: fullName, role: email.trim().toLowerCase() === "admin" ? "admin" : "user" } } });
+    const result = await supabase.auth.signUp({ email: loginEmail(email), password: supabasePassword(email, password), options: { emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`, data: { full_name: fullName, role: email.trim().toLowerCase() === "admin" ? "admin" : "user" } } });
     if (result.error) { setError(result.error); throw result.error; }
     return result.data;
   }, []);
