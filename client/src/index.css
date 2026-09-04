@@ -43,46 +43,46 @@
 }
 
 :root {
-  --primary: #176b5b;
+  --primary: #285d68;
   --primary-foreground: #ffffff;
-  --sidebar-primary: #176b5b;
+  --sidebar-primary: #285d68;
   --sidebar-primary-foreground: #ffffff;
   --chart-1: #8bc9a1;
-  --chart-2: #176b5b;
-  --chart-3: #cde86a;
-  --chart-4: #e89988;
-  --chart-5: #c18a4a;
+  --chart-2: #285d68;
+  --chart-3: #f2c766;
+  --chart-4: #e58b70;
+  --chart-5: #c58b4b;
   --radius: 0.7rem;
-  --background: #f6f8f5;
-  --foreground: #19352e;
+  --background: #fbf8f1;
+  --foreground: #243447;
   --card: #ffffff;
-  --card-foreground: #19352e;
+  --card-foreground: #243447;
   --popover: #ffffff;
-  --popover-foreground: #19352e;
+  --popover-foreground: #243447;
   --secondary: #eef4ee;
   --secondary-foreground: #466458;
   --muted: #f0f4ef;
   --muted-foreground: #718078;
-  --accent: #e6f3ec;
-  --accent-foreground: #19352e;
+  --accent: #edf3f1;
+  --accent-foreground: #243447;
   --destructive: #b94d43;
   --destructive-foreground: #ffffff;
-  --border: #d8e4dc;
-  --input: #ccddd2;
-  --ring: #176b5b;
-  --sidebar: #f1f6f2;
-  --sidebar-foreground: #19352e;
+  --border: #e5ded2;
+  --input: #d8ccba;
+  --ring: #285d68;
+  --sidebar: #f4f0e8;
+  --sidebar-foreground: #243447;
   --sidebar-accent: #ffffff;
-  --sidebar-accent-foreground: #19352e;
-  --sidebar-border: #d4e2d9;
-  --sidebar-ring: #176b5b;
+  --sidebar-accent-foreground: #243447;
+  --sidebar-border: #ded6c9;
+  --sidebar-ring: #285d68;
 }
 
 .dark {
-  --primary: #cde86a;
-  --primary-foreground: #19352e;
-  --sidebar-primary: #cde86a;
-  --sidebar-primary-foreground: #19352e;
+  --primary: #f2c766;
+  --primary-foreground: #243447;
+  --sidebar-primary: #f2c766;
+  --sidebar-primary-foreground: #243447;
   --background: #101d1a;
   --foreground: #edf6ef;
   --card: #19342b;
@@ -99,13 +99,13 @@
   --destructive-foreground: #2d1714;
   --border: #315344;
   --input: #315344;
-  --ring: #cde86a;
+  --ring: #f2c766;
   --sidebar: #0d2820;
   --sidebar-foreground: #e6f0e7;
   --sidebar-accent: #234638;
   --sidebar-accent-foreground: #e6f0e7;
   --sidebar-border: #315344;
-  --sidebar-ring: #cde86a;
+  --sidebar-ring: #f2c766;
 }
 
 @layer base {
@@ -122,11 +122,19 @@
   .container { width: 100%; margin-left: auto; margin-right: auto; padding-left: 1rem; padding-right: 1rem; }
   .flex { min-height: 0; min-width: 0; }
   /* Smooth, readable dark mode for the legacy utility colors used by the screens. */
+  body {
+    background-color: var(--background);
+    background-image: radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--accent) 72%, transparent) 0 1px, transparent 1.5px), radial-gradient(circle at 86% 18%, color-mix(in srgb, var(--primary) 9%, transparent) 0 1px, transparent 1.5px), linear-gradient(135deg, transparent 0 49.5%, color-mix(in srgb, var(--primary) 4%, transparent) 50% 50.5%, transparent 51% 100%);
+    background-size: 24px 24px, 32px 32px, 18px 18px;
+    background-attachment: fixed;
+  }
+  .dark body { color-scheme: dark; background-image: radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--primary) 14%, transparent) 0 1px, transparent 1.5px), linear-gradient(135deg, transparent 0 49.5%, color-mix(in srgb, var(--primary) 8%, transparent) 50% 50.5%, transparent 51% 100%); }
+  button, [role="button"], select { letter-spacing: -0.005em; }
   .dark body { color-scheme: dark; }
   .dark [class*="bg-white"] { background-color: var(--card) !important; }
-  .dark [class*="bg-[#f6f8f5]"], .dark [class*="bg-[#f1f6f2]"], .dark [class*="bg-[#f8faf7]"] { background-color: var(--background) !important; }
-  .dark [class*="border-[#d8e4dc]"], .dark [class*="border-[#d4e2d9]"], .dark [class*="border-[#ccddd2]"] { border-color: var(--border) !important; }
-  .dark [class*="text-[#19352e]"], .dark [class*="text-[#345347]"], .dark [class*="text-[#4b6558]"] { color: var(--foreground) !important; }
+  .dark [class*="bg-[#fbf8f1]"], .dark [class*="bg-[#f4f0e8]"], .dark [class*="bg-[#f8faf7]"] { background-color: var(--background) !important; }
+  .dark [class*="border-[#e5ded2]"], .dark [class*="border-[#ded6c9]"], .dark [class*="border-[#d8ccba]"] { border-color: var(--border) !important; }
+  .dark [class*="text-[#243447]"], .dark [class*="text-[#345347]"], .dark [class*="text-[#4b6558]"] { color: var(--foreground) !important; }
   .dark input, .dark select, .dark textarea { color: var(--foreground); background-color: var(--card); }
   @media (min-width: 640px) { .container { padding-left: 1.5rem; padding-right: 1.5rem; } }
   @media (min-width: 1024px) { .container { padding-left: 2rem; padding-right: 2rem; max-width: 1280px; } }
