@@ -1,6 +1,6 @@
 -- Fix admin writes for the GitHub Pages frontend using Supabase Auth.
--- RLS remains enabled. The admin decision accepts the canonical public.users role,
--- the JWT role metadata, or the configured administrator email.
+-- RLS remains enabled. The admin decision uses Supabase Auth JWT metadata
+-- or the configured administrator email; this project has no public.users table.
 
 create or replace function public.current_user_is_admin()
 returns boolean
@@ -10,13 +10,7 @@ security definer
 set search_path = public
 as $$
   select
-    exists (
-      select 1
-      from public.users
-      where id = auth.uid()
-        and role = 'admin'
-    )
-    or coalesce((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin', false)
+    coalesce((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin', false)
     or coalesce((auth.jwt() ->> 'email') = 'admin@tontine.local', false);
 $$;
 
