@@ -1,0 +1,56 @@
+import { supabase } from "@/lib/supabase";
+
+export type FamilyData = {
+  asOf: string; asOfLabel: string; contribution: number; members: any[]; payments: any[]; allocations: any[]; withdrawals: any[]; announcements: any[]; auditLogs: any[]; summary: any;
+};
+
+const monthKey = (value: string | Date) => { const date = new Date(value); return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`; };
+const addMonths = (key: string, amount: number) => { const [year, month] = key.split("-").map(Number); return monthKey(new Date(Date.UTC(year, month - 1 + amount, 1))); };
+const monthLabel = (key: string) => { const [year, month] = key.split("-").map(Number); return new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(year, month - 1, 1))); };
+const monthsBetween = (start: string, end: string) => { const result: string[] = []; let cursor = start; while (cursor <= end && result.length < 240) { result.push(cursor); cursor = addMonths(cursor, 1); } return result; };
+
+async function actorId() { const { data } = await supabase.auth.getUser(); return data.user?.id ?? null; }
+async function contribution() { const { data, error } = await supabase.from("settings").select("setting_value").eq("setting_key", "monthly_contribution").maybeSingle(); if (error) throw error; return Number(data?.setting_value ?? 1000); }
+function requiredMemberMonths(joinDate: string, asOf: string) { return monthKey(joinDate) <= asOf ? monthsBetween(monthKey(joinDate), asOf) : []; }
+function situation(member: any, allocations: any[], amount: number, asOf: string) {
+  const map = new Map<string, number>(); allocations.filter((item) => item.member_id === member.id).forEach((item) => map.set(item.period_month.slice(0, 7), (map.get(item.period_month.slice(0, 7)) ?? 0) + Number(item.allocated_amount)));
+  const dueMonths = requiredMemberMonths(member.join_date, asOf); let dueAmount = 0; let lateMonths = 0; let paidMonths = 0; let partialMonths = 0;
+  dueMonths.forEach((key) => { const paid = map.get(key) ?? 0; if (paid >= amount) paidMonths += 1; else if (paid > 0) partialMonths += 1; if (paid < amount) { dueAmount += amount - paid; lateMonths += 1; } });
+  const future = Array.from(map.entries()).filter(([key, paid]) => key > asOf && paid >= amount); const full = Array.from(map.entries()).filter(([, paid]) => paid >= amount);
+  return { memberId: member.id, fullName: member.full_name, phone: member.phone, email: member.email, isActive: member.status !== "INACTIVE", joinedAt: member.join_date, paidAmount: Array.from(map.values()).reduce((sum, value) => sum + value, 0), dueAmount, paidMonths, lateMonths, advanceMonths: future.length, partialMonths, upToMonth: full.sort(([a], [b]) => a.localeCompare(b)).at(-1)?.[0] ?? null, status: dueAmount > 0 ? "RETARD" : future.length > 0 ? "AVANCE" : "A_JOUR" };
+}
+
+export async function loadFamily(asOf: string): Promise<FamilyData> {
+  const [members, payments, allocations, withdrawals, announcements, auditLogs, contributionAmount] = await Promise.all([
+    supabase.from("members").select("*").order("full_name"),
+    supabase.from("payment_transactions").select("*, members(full_name)").order("payment_date", { ascending: false }).limit(80),
+    supabase.from("payment_allocations").select("*").order("period_month"),
+    supabase.from("withdrawals").select("*").order("withdrawal_date", { ascending: false }).limit(80),
+    supabase.from("announcements").select("*").eq("published", true).order("published_at", { ascending: false }).limit(20),
+    supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(100),
+    contribution(),
+  ]);
+  for (const response of [members, payments, allocations, withdrawals, announcements, auditLogs]) if (response.error) throw response.error;
+  const memberRows = members.data ?? []; const allocationRows = allocations.data ?? []; const paymentRows = payments.data ?? []; const withdrawalRows = withdrawals.data ?? [];
+  const situations = memberRows.map((member) => situation(member, allocationRows, contributionAmount, asOf)); const active = situations.filter((item) => item.isActive);
+  const totalIn = paymentRows.reduce((sum, item) => sum + Number(item.amount), 0); const totalOut = withdrawalRows.reduce((sum, item) => sum + Number(item.amount), 0);
+  const monthPayments = paymentRows.filter((item) => monthKey(item.payment_date) === asOf); const paidIds = new Set(allocationRows.filter((item) => item.period_month.slice(0, 7) === asOf && Number(item.allocated_amount) >= contributionAmount).map((item) => item.member_id));
+  return { asOf, asOfLabel: monthLabel(asOf), contribution: contributionAmount, members: situations, payments: paymentRows.map((item) => ({ ...item, memberName: item.members?.full_name ?? "Membre" })), allocations: allocationRows, withdrawals: withdrawalRows, announcements: announcements.data ?? [], auditLogs: auditLogs.data ?? [], summary: { totalMembers: memberRows.length, activeMembers: active.length, inactiveMembers: memberRows.length - active.length, expectedThisMonth: active.length * contributionAmount, collectedThisMonth: monthPayments.reduce((sum, item) => sum + Number(item.amount), 0), paidMembersThisMonth: paidIds.size, unpaidMembersThisMonth: Math.max(active.length - paidIds.size, 0), arrears: active.reduce((sum, item) => sum + item.dueAmount, 0), advances: active.reduce((sum, item) => sum + item.advanceMonths * contributionAmount, 0), totalIn, totalOut, balance: totalIn - totalOut, lateMembers: active.filter((item) => item.status === "RETARD").length, upToDateMembers: active.filter((item) => item.status === "A_JOUR").length, membersWithAdvance: active.filter((item) => item.advanceMonths > 0).length } };
+}
+
+async function allocate(memberId: string, amount: number, paymentDate: string, forcedMonth?: string) {
+  const [memberResponse, existingResponse, contributionAmount] = await Promise.all([supabase.from("members").select("*").eq("id", memberId).single(), supabase.from("payment_allocations").select("*").eq("member_id", memberId), contribution()]);
+  if (memberResponse.error) throw memberResponse.error; if (existingResponse.error) throw existingResponse.error;
+  const member = memberResponse.data; const existing = existingResponse.data ?? []; let remaining = amount; const start = monthKey(member.join_date); const asOf = monthKey(paymentDate); const candidates = forcedMonth ? [forcedMonth] : [...requiredMemberMonths(member.join_date, asOf), ...Array.from({ length: 120 }, (_, index) => addMonths(asOf, index + 1))]; const plan: { month: string; amount: number }[] = [];
+  for (const key of candidates) { if (remaining <= 0) break; const already = existing.filter((item) => item.period_month.slice(0, 7) === key).reduce((sum, item) => sum + Number(item.allocated_amount), 0); const applied = Math.min(Math.max(contributionAmount - already, 0), remaining); if (applied > 0) { plan.push({ month: key, amount: applied }); remaining -= applied; } }
+  if (remaining > 0) throw new Error("Montant impossible à affecter aux échéances disponibles."); return { member, plan, contribution: contributionAmount };
+}
+
+export async function previewPayment(memberId: string, amount: number, paymentDate: string) { const result = await allocate(memberId, amount, paymentDate); return { allocation: result.plan.map((item) => ({ monthKey: item.month, amount: item.amount, label: monthLabel(item.month) })), memberName: result.member.full_name, contribution: result.contribution }; }
+export async function addMember(input: any) { const { error } = await supabase.from("members").insert({ full_name: input.fullName, phone: input.phone ?? null, email: input.email ?? null, join_date: input.joinedAt, status: "ACTIVE", notes: input.notes ?? null }); if (error) throw error; }
+export async function recordPayment(input: any) { const actor = await actorId(); if (!actor) throw new Error("Session Supabase introuvable."); const plan = await allocate(input.memberId, input.amount, input.paymentDate, input.forcedMonth); const { data: payment, error } = await supabase.from("payment_transactions").insert({ member_id: input.memberId, amount: input.amount, payment_date: input.paymentDate, payment_method: input.paymentMethod, reference: input.reference ?? null, notes: input.observation ?? null, recorded_by: actor }).select().single(); if (error) throw error; const { error: allocationError } = await supabase.from("payment_allocations").insert(plan.plan.map((item) => ({ payment_transaction_id: payment.id, member_id: input.memberId, period_month: `${item.month}-01`, allocated_amount: item.amount }))); if (allocationError) throw allocationError; const { error: cashError } = await supabase.from("cash_transactions").insert({ transaction_type: "PAYMENT", amount: input.amount, transaction_date: input.paymentDate, category: "COTISATION", reference_id: payment.id, recorded_by: actor, description: `Cotisation de ${plan.member.full_name}` }); if (cashError) throw cashError; return { paymentId: payment.id, allocation: plan.plan, memberName: plan.member.full_name }; }
+export async function recordGroupPayments(input: any) { const members = await supabase.from("members").select("id").in("id", input.memberIds); if (members.error) throw members.error; for (const member of members.data ?? []) await recordPayment({ memberId: member.id, amount: input.amount ?? 1000, paymentDate: input.paymentDate, paymentMethod: input.paymentMethod }); return { count: members.data?.length ?? 0 }; }
+export async function createWithdrawal(input: any) { const actor = await actorId(); if (!actor) throw new Error("Session Supabase introuvable."); const { data, error } = await supabase.from("withdrawals").insert({ amount: input.amount, withdrawal_date: input.withdrawalDate, category: input.category, beneficiary: input.beneficiary ?? null, person_or_group_concerned: input.motif, reason: input.motif, notes: input.observation ?? input.description ?? null, payment_method: input.paymentMethod, reference: input.reference ?? null, recorded_by: actor }).select().single(); if (error) throw error; const { error: cashError } = await supabase.from("cash_transactions").insert({ transaction_type: "WITHDRAWAL", amount: input.amount, transaction_date: input.withdrawalDate, category: input.category, reference_id: data.id, recorded_by: actor, description: input.motif }); if (cashError) throw cashError; }
+export async function deleteWithdrawal(input: any) { const id = typeof input === "string" ? input : input.id; const { error } = await supabase.from("withdrawals").delete().eq("id", id); if (error) throw error; }
+export async function createAnnouncement(input: any) { const actor = await actorId(); const { error } = await supabase.from("announcements").insert({ title: input.title, content: input.body, published: true, created_by: actor }); if (error) throw error; }
+export async function updateContribution(input: any) { const amount = typeof input === "number" ? input : input.amount; const actor = await actorId(); const { error } = await supabase.from("settings").upsert({ setting_key: "monthly_contribution", setting_value: String(amount), updated_by: actor }, { onConflict: "setting_key" }); if (error) throw error; }
