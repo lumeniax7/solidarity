@@ -17,7 +17,7 @@ function situation(member: any, allocations: any[], amount: number, asOf: string
   const dueMonths = requiredMemberMonths(member.join_date, asOf); let dueAmount = 0; let lateMonths = 0; let paidMonths = 0; let partialMonths = 0;
   dueMonths.forEach((key) => { const paid = map.get(key) ?? 0; if (paid >= amount) paidMonths += 1; else if (paid > 0) partialMonths += 1; if (paid < amount) { dueAmount += amount - paid; lateMonths += 1; } });
   const future = Array.from(map.entries()).filter(([key, paid]) => key > asOf && paid >= amount); const full = Array.from(map.entries()).filter(([, paid]) => paid >= amount);
-  return { memberId: member.id, fullName: member.full_name, phone: member.phone, email: member.email, notes: member.notes, isActive: member.status !== "INACTIVE", joinedAt: member.join_date, paidAmount: Array.from(map.values()).reduce((sum, value) => sum + value, 0), dueAmount, paidMonths, lateMonths, advanceMonths: future.length, partialMonths, upToMonth: full.sort(([a], [b]) => a.localeCompare(b)).at(-1)?.[0] ?? null, status: dueAmount > 0 ? "RETARD" : future.length > 0 ? "AVANCE" : "A_JOUR" };
+  return { memberId: member.id, recordId: member.id, createdAt: member.created_at, fullName: member.full_name, phone: member.phone, email: member.email, notes: member.notes, isActive: member.status !== "INACTIVE", joinedAt: member.join_date, paidAmount: Array.from(map.values()).reduce((sum, value) => sum + value, 0), dueAmount, paidMonths, lateMonths, advanceMonths: future.length, partialMonths, upToMonth: full.sort(([a], [b]) => a.localeCompare(b)).at(-1)?.[0] ?? null, status: dueAmount > 0 ? "RETARD" : future.length > 0 ? "AVANCE" : "A_JOUR" };
 }
 
 export async function loadFamily(asOf: string): Promise<FamilyData> {
