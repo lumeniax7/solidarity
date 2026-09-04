@@ -1,4 +1,4 @@
-const CACHE_NAME = "caisse-familiale-assets-v1";
+const CACHE_NAME = "caisse-familiale-assets-v2";
 const BASE_PATH = new URL("./", self.registration.scope).pathname;
 
 self.addEventListener("install", () => self.skipWaiting());

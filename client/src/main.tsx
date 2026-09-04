@@ -6,6 +6,9 @@ import superjson from "superjson";
 import App from "./App";
 import "./index.css";
 
+const savedTheme = localStorage.getItem("caisse-theme");
+if (savedTheme === "dark") document.documentElement.classList.add("dark");
+
 const queryClient = new QueryClient();
 
 const trpcClient = trpc.createClient({
