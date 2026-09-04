@@ -2,10 +2,16 @@
   "name": "Caisse Familiale",
   "short_name": "Caisse",
   "description": "Gestion familiale des cotisations, de la caisse commune et des besoins solidaires.",
-  "start_url": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#f7f8f4",
   "theme_color": "#0e5b49",
   "lang": "fr",
-  "icons": []
+  "dir": "ltr",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icon-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
 }
