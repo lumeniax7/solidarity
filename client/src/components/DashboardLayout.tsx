@@ -111,7 +111,7 @@ type DashboardLayoutContentProps = { children: React.ReactNode; setSidebarWidth:
 function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutContentProps) {
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, setOpenMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -160,7 +160,7 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
             <SidebarMenu>
               {visibleItems.map((item) => {
                 const isActive = location === item.path;
-                return <SidebarMenuItem key={item.path}><SidebarMenuButton isActive={isActive} onClick={() => setLocation(item.path)} tooltip={item.label} className={`h-11 rounded-xl font-medium transition-all ${isActive ? "bg-[#d9f46d] text-[#17352c] shadow-sm hover:bg-[#d9f46d]" : "text-[#65786d] hover:bg-white hover:text-[#17352c]"}`}><item.icon className="h-[17px] w-[17px]" /><span>{item.label}</span>{isActive && !isCollapsed && <ChevronRight className="ml-auto h-3.5 w-3.5" />}</SidebarMenuButton></SidebarMenuItem>;
+                return <SidebarMenuItem key={item.path}><SidebarMenuButton isActive={isActive} onClick={() => { setLocation(item.path); if (isMobile) setOpenMobile(false); }} tooltip={item.label} className={`h-11 rounded-xl font-medium transition-all ${isActive ? "bg-[#d9f46d] text-[#17352c] shadow-sm hover:bg-[#d9f46d]" : "text-[#65786d] hover:bg-white hover:text-[#17352c]"}`}><item.icon className="h-[17px] w-[17px]" /><span>{item.label}</span>{isActive && !isCollapsed && <ChevronRight className="ml-auto h-3.5 w-3.5" />}</SidebarMenuButton></SidebarMenuItem>;
               })}
             </SidebarMenu>
           </SidebarContent>
