@@ -22,6 +22,7 @@ import {
 import { useIsMobile } from "@/hooks/useMobile";
 import {
   ArrowDownToLine,
+  BarChart3,
   Bell,
   BookOpenCheck,
   ChartNoAxesCombined,
@@ -51,6 +52,7 @@ const menuItems = [
   { icon: BookOpenCheck, label: "Historique", path: "/history" },
   { icon: FileBarChart, label: "Rapports", path: "/reports" },
   { icon: ChartNoAxesCombined, label: "Statistiques", path: "/statistics" },
+  { icon: BarChart3, label: "Situations", path: "/status" },
   { icon: Bell, label: "Annonces", path: "/announcements" },
   { icon: ShieldCheck, label: "Journal d’audit", path: "/audit" },
   { icon: Settings2, label: "Paramètres", path: "/settings", adminOnly: true },

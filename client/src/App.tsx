@@ -31,6 +31,7 @@ function Router() {
         <Route path="/history" component={Home} />
         <Route path="/reports" component={Home} />
         <Route path="/statistics" component={Home} />
+        <Route path="/status" component={Home} />
         <Route path="/announcements" component={Home} />
         <Route path="/audit" component={Home} />
         <Route path="/settings" component={Home} />
