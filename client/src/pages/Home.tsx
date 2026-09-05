@@ -90,13 +90,13 @@ function StatusBadge({ status }: { status: string }) { const item = statusLabel(
 function EmptyState({ icon: Icon, title, body }: { icon: typeof FileText; title: string; body: string }) { return <div className="rounded-2xl border border-dashed border-[#cad8cd] bg-[#fbfcfa] px-6 py-12 text-center"><div className="mx-auto grid h-11 w-11 place-items-center rounded-2xl bg-[#e8f1e9] text-[#285d68]"><Icon className="h-5 w-5" /></div><p className="mt-4 text-sm font-semibold text-[#243447]">{title}</p><p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-[#819087]">{body}</p></div>; }
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, recoverSession } = useAuth();
   const [location] = useLocation();
   const [period, setPeriod] = useState(currentMonth);
   const [data, setData] = useState<any>(null);
   const [snapshotLoading, setSnapshotLoading] = useState(true);
   const [snapshotError, setSnapshotError] = useState<Error | null>(null);
-  const reload = async () => { if (!user) return; setSnapshotLoading(true); try { setData(await loadFamily(period)); setSnapshotError(null); } catch (error) { setSnapshotError(error as Error); } finally { setSnapshotLoading(false); } };
+  const reload = async () => { if (!user) return; setSnapshotLoading(true); try { setData(await loadFamily(period)); setSnapshotError(null); } catch (error) { const message = error instanceof Error ? error.message : String(error); if (/jwt issued at future|invalid jwt|jwt expired|refresh token/i.test(message)) { await recoverSession(); setSnapshotError(null); } else setSnapshotError(error as Error); } finally { setSnapshotLoading(false); } };
   useEffect(() => { void reload(); }, [user?.openId, period]);
   const admin = user?.role === "admin";
 

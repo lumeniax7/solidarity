@@ -26,6 +26,11 @@ function supabasePassword(identifier: string, password: string) {
   return password;
 }
 
+function isRecoverableJwtError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  return /jwt issued at future|invalid jwt|jwt expired|refresh token/i.test(message);
+}
+
 export function useAuth(_options?: UseAuthOptions) {
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,9 +38,10 @@ export function useAuth(_options?: UseAuthOptions) {
 
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getSession().then(({ data, error: sessionError }) => {
+    supabase.auth.getSession().then(async ({ data, error: sessionError }) => {
       if (!mounted) return;
-      if (sessionError) setError(sessionError);
+      if (sessionError && !isRecoverableJwtError(sessionError)) setError(sessionError);
+      if (sessionError && isRecoverableJwtError(sessionError)) await supabase.auth.signOut({ scope: "local" });
       setSupabaseUser(data.session?.user ?? null);
       setLoading(false);
     });
@@ -84,6 +90,12 @@ export function useAuth(_options?: UseAuthOptions) {
     setSupabaseUser(data.user ?? null);
   }, []);
 
+  const recoverSession = useCallback(async () => {
+    await supabase.auth.signOut({ scope: "local" });
+    setSupabaseUser(null);
+    setError(null);
+  }, []);
+
   const user = useMemo(() => supabaseUser ? toAppUser(supabaseUser) : null, [supabaseUser]);
-  return { user, loading, error, isAuthenticated: Boolean(user), logout, signIn, signUp, refresh };
+  return { user, loading, error, isAuthenticated: Boolean(user), logout, signIn, signUp, refresh, recoverSession };
 }
