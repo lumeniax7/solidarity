@@ -38,6 +38,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 
+const OFFLINE_CACHE_PREFIX = "caisse-family-offline-v1:";
+function offlineCacheKey(period: string) { return `${OFFLINE_CACHE_PREFIX}${period}`; }
+function readOfflineFamily(period: string) { try { const raw = localStorage.getItem(offlineCacheKey(period)); return raw ? JSON.parse(raw) : null; } catch { return null; } }
+function writeOfflineFamily(period: string, value: any) { try { localStorage.setItem(offlineCacheKey(period), JSON.stringify({ savedAt: new Date().toISOString(), data: value })); } catch { /* stockage indisponible ou saturé */ } }
+function isOfflineError(error: unknown) { return !navigator.onLine || /network|fetch|offline|failed to fetch|jwt/i.test(error instanceof Error ? error.message : String(error ?? "")); }
+
 const monthNames = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
 const categories = ["SANTE", "URGENCE", "DECES", "EDUCATION", "EVENEMENT_FAMILIAL", "AIDE_FAMILIALE", "DEPLACEMENT", "AUTRE"] as const;
 const methods = ["ESPECES", "MOBILE_MONEY", "VIREMENT", "CHEQUE"];
@@ -96,7 +102,10 @@ export default function Home() {
   const [data, setData] = useState<any>(null);
   const [snapshotLoading, setSnapshotLoading] = useState(true);
   const [snapshotError, setSnapshotError] = useState<Error | null>(null);
-  const reload = async () => { if (!user) return; setSnapshotLoading(true); try { setData(await loadFamily(period)); setSnapshotError(null); } catch (error) { const message = error instanceof Error ? error.message : String(error); if (/jwt issued at future|invalid jwt|jwt expired|refresh token/i.test(message)) { await recoverSession(); setSnapshotError(null); } else setSnapshotError(error as Error); } finally { setSnapshotLoading(false); } };
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
+  const [usingOfflineData, setUsingOfflineData] = useState(false);
+  useEffect(() => { const online = () => setIsOnline(true); const offline = () => setIsOnline(false); window.addEventListener("online", online); window.addEventListener("offline", offline); return () => { window.removeEventListener("online", online); window.removeEventListener("offline", offline); }; }, []);
+  const reload = async () => { if (!user) return; setSnapshotLoading(true); const cached = readOfflineFamily(period); if (!navigator.onLine && cached?.data) { setData(cached.data); setUsingOfflineData(true); setSnapshotError(null); setSnapshotLoading(false); return; } try { const fresh = await loadFamily(period); setData(fresh); writeOfflineFamily(period, fresh); setUsingOfflineData(false); setSnapshotError(null); } catch (error) { const message = error instanceof Error ? error.message : String(error); if (/jwt issued at future|invalid jwt|jwt expired|refresh token/i.test(message)) { await recoverSession(); setSnapshotError(null); } else if (cached?.data && isOfflineError(error)) { setData(cached.data); setUsingOfflineData(true); setSnapshotError(null); } else setSnapshotError(error as Error); } finally { setSnapshotLoading(false); } };
   useEffect(() => { void reload(); }, [user?.openId, period]);
   const admin = user?.role === "admin";
 
@@ -119,7 +128,7 @@ export default function Home() {
   const [announcementForm, setAnnouncementForm] = useState({ title: "", body: "" });
   const [contributionDraft, setContributionDraft] = useState("");
 
-  const action = (operation: (input: any) => Promise<any>, success: () => void) => ({ isPending: false, mutate: (input: any) => { void operation(input).then(success).catch((error) => toast.error(error.message)); } });
+  const action = (operation: (input: any) => Promise<any>, success: () => void) => ({ isPending: false, mutate: (input: any) => { if (!navigator.onLine) { toast.error("Cette action nécessite une connexion. Les données consultées hors connexion restent disponibles."); return; } void operation(input).then(success).catch((error) => toast.error(error.message)); } });
   const addMember = action(addMemberSupabase, () => { toast.success("Membre ajouté"); setMemberOpen(false); void reload(); });
   const updateMember = action(updateMemberSupabase, () => { toast.success("Membre modifié"); setMemberOpen(false); setEditingMemberId(null); void reload(); });
   const deleteMember = action(deleteMemberSupabase, () => { toast.success("Membre supprimé"); void reload(); });
@@ -152,6 +161,8 @@ export default function Home() {
   const confirmPayment = () => { if (editingPaymentId) { updatePayment.mutate({ id: editingPaymentId, amount: Number(paymentForm.amount), paymentDate: dateForApi(paymentForm.paymentDate), reference: paymentForm.reference || undefined }); return; } if (!paymentPreviewData) return toast.error("Prévisualisez l'affectation avant de confirmer."); recordPayment.mutate({ memberId: paymentForm.memberId, amount: Number(paymentForm.amount), paymentDate: dateForApi(paymentForm.paymentDate), paymentMethod: paymentForm.paymentMethod, reference: paymentForm.reference || undefined, observation: paymentForm.observation || undefined }); };
 
   return <>
+    {!isOnline && <div className="mb-4 rounded-xl border border-[#e8d3a5] bg-[#fff8e7] px-4 py-3 text-sm text-[#80652c]">Mode hors connexion : affichage des dernières données enregistrées. Les modifications seront disponibles dès le retour du réseau.</div>}
+    {isOnline && usingOfflineData && <div className="mb-4 rounded-xl border border-[#e8d3a5] bg-[#fff8e7] px-4 py-3 text-sm text-[#80652c]">Connexion retrouvée : les dernières données locales sont affichées. Appuyez sur Actualiser pour synchroniser.</div>}
     {page === "dashboard" && <DashboardPage data={data} period={period} setPeriod={setPeriod} admin={admin} openPayment={openPayment} openGroup={() => { setGroupForm((form) => ({ ...form, month: period })); setGroupOpen(true); }} openWithdrawal={() => setWithdrawalOpen(true)} refreshButton={refreshButton} />}
     {page === "members" && <MembersPage members={filteredMembers} search={memberSearch} setSearch={setMemberSearch} sort={memberSort} setSort={setMemberSort} admin={admin} openPayment={openPayment} openMember={() => { setEditingMemberId(null); setMemberForm({ fullName: "", phone: "", email: "", joinedAt: isoToDateInput(), notes: "" }); setMemberOpen(true); }} editMember={openMemberEdit} deleteMember={(id, name) => { if (window.confirm(`Supprimer définitivement le membre « ${name} » ? Cette action peut être refusée s’il possède déjà des paiements.`)) deleteMember.mutate({ id }); }} />}
     {page === "contributions" && <ContributionsPage data={data} period={period} setPeriod={setPeriod} admin={admin} openPayment={openPayment} openGroup={() => { setGroupForm((form) => ({ ...form, month: period })); setGroupOpen(true); }} editPayment={openPaymentEdit} deletePayment={(id, name, amount) => { if (window.confirm(`Annuler le paiement de ${currency(amount)} enregistré pour ${name} ? Les mois affectés seront libérés.`)) deletePayment.mutate({ id }); }} />}
