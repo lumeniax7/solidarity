@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function admin() { return signedIn() && (request.auth.token.email == 'admin@tontine.local' || request.auth.token.name == 'admin'); }
+    match /members/{id} { allow read: if signedIn(); allow write: if admin(); }
+    match /payment_transactions/{id} { allow read: if signedIn(); allow write: if admin(); }
+    match /payment_allocations/{id} { allow read: if signedIn(); allow write: if admin(); }
+    match /withdrawals/{id} { allow read: if signedIn(); allow write: if admin(); }
+    match /cash_transactions/{id} { allow read: if signedIn(); allow write: if admin(); }
+    match /announcements/{id} { allow read: if signedIn(); allow write: if admin(); }
+    match /audit_logs/{id} { allow read: if signedIn(); allow write: if admin(); }
+    match /settings/{id} { allow read: if signedIn(); allow write: if admin(); }
+    match /notifications/{id} { allow read: if signedIn() && resource.data.user_id == request.auth.uid; allow write: if admin() || (signedIn() && request.resource.data.user_id == request.auth.uid); }
+  }
+}

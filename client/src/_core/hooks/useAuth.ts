@@ -1,101 +1,10 @@
-import { supabase } from "@/lib/supabase";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { firebaseAuth } from "@/lib/firebase";
+import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut, updateProfile, type User as FirebaseUser } from "firebase/auth";
 import { useCallback, useEffect, useMemo, useState } from "react";
-
 type UseAuthOptions = { redirectOnUnauthenticated?: boolean; redirectPath?: string };
 type AppUser = { id: number; openId: string; name: string | null; email: string | null; loginMethod: string; role: "user" | "admin"; createdAt: Date; updatedAt: Date; lastSignedIn: Date };
-
-function toAppUser(user: SupabaseUser): AppUser {
-  const now = new Date();
-  const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email || "Utilisateur";
-  const role = user.user_metadata?.role === "admin" || user.email === "admin@tontine.local" ? "admin" : "user";
-  return { id: 0, openId: user.id, name, email: user.email ?? null, loginMethod: "supabase", role, createdAt: new Date(user.created_at), updatedAt: now, lastSignedIn: now };
-}
-
-function loginEmail(identifier: string) {
-  const value = identifier.trim().toLowerCase();
-  if (value === "admin") return "admin@tontine.local";
-  if (value === "users" || value === "user") return "users@tontine.local";
-  return value.includes("@") ? value : `${value}@tontine.local`;
-}
-
-function supabasePassword(identifier: string, password: string) {
-  const value = identifier.trim().toLowerCase();
-  if (value === "admin" && password === "admin") return "TontineAdmin2026!";
-  if ((value === "users" || value === "user") && password === "users") return "TontineUsers2026!";
-  return password;
-}
-
-function isRecoverableJwtError(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error ?? "");
-  return /jwt issued at future|invalid jwt|jwt expired|refresh token/i.test(message);
-}
-
-export function useAuth(_options?: UseAuthOptions) {
-  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    supabase.auth.getSession().then(async ({ data, error: sessionError }) => {
-      if (!mounted) return;
-      if (sessionError && !isRecoverableJwtError(sessionError)) setError(sessionError);
-      if (sessionError && isRecoverableJwtError(sessionError)) await supabase.auth.signOut({ scope: "local" });
-      setSupabaseUser(data.session?.user ?? null);
-      setLoading(false);
-    });
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!mounted) return;
-      setSupabaseUser(session?.user ?? null);
-      setLoading(false);
-      setError(null);
-    });
-    return () => { mounted = false; listener.subscription.unsubscribe(); };
-  }, []);
-
-  const logout = useCallback(async () => {
-    const { error: signOutError } = await supabase.auth.signOut();
-    if (signOutError) { setError(signOutError); throw signOutError; }
-  }, []);
-
-  const signIn = useCallback(async (email: string, password: string) => {
-    setError(null);
-    const normalizedEmail = loginEmail(email);
-    const normalizedPassword = supabasePassword(email, password);
-    const result = await supabase.auth.signInWithPassword({ email: normalizedEmail, password: normalizedPassword });
-    if (result.error && (normalizedEmail === "admin@tontine.local" || normalizedEmail === "users@tontine.local")) {
-      const created = await supabase.auth.signUp({ email: normalizedEmail, password: normalizedPassword, options: { data: { full_name: email.trim(), role: email.trim().toLowerCase() === "admin" ? "admin" : "user" } } });
-      if (!created.error && created.data.session) return created.data;
-      if (!created.error) {
-        const confirmationError = new Error("Compte créé. Désactivez la confirmation e-mail dans Supabase, ou confirmez l’adresse avant de vous reconnecter.");
-        setError(confirmationError);
-        throw confirmationError;
-      }
-    }
-    if (result.error) { setError(result.error); throw result.error; }
-    return result.data;
-  }, []);
-
-  const signUp = useCallback(async (email: string, password: string, fullName: string) => {
-    setError(null);
-    const result = await supabase.auth.signUp({ email: loginEmail(email), password: supabasePassword(email, password), options: { emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`, data: { full_name: fullName, role: email.trim().toLowerCase() === "admin" ? "admin" : "user" } } });
-    if (result.error) { setError(result.error); throw result.error; }
-    return result.data;
-  }, []);
-
-  const refresh = useCallback(async () => {
-    const { data, error: refreshError } = await supabase.auth.getUser();
-    if (refreshError) setError(refreshError);
-    setSupabaseUser(data.user ?? null);
-  }, []);
-
-  const recoverSession = useCallback(async () => {
-    await supabase.auth.signOut({ scope: "local" });
-    setSupabaseUser(null);
-    setError(null);
-  }, []);
-
-  const user = useMemo(() => supabaseUser ? toAppUser(supabaseUser) : null, [supabaseUser]);
-  return { user, loading, error, isAuthenticated: Boolean(user), logout, signIn, signUp, refresh, recoverSession };
-}
+const emailOf = (value: string) => { const v = value.trim().toLowerCase(); return v === "admin" ? "admin@tontine.local" : v === "user" || v === "users" ? "users@tontine.local" : v.includes("@") ? v : `${v}@tontine.local`; };
+const passwordOf = (identifier: string, password: string) => { const v = identifier.trim().toLowerCase(); return v === "admin" && password === "admin" ? "TontineAdmin2026!" : (v === "user" || v === "users") && password === "users" ? "TontineUsers2026!" : password; };
+const appUser = (u: FirebaseUser): AppUser => { const now = new Date(); const email = u.email ?? null; return { id: 0, openId: u.uid, name: u.displayName || email || "Utilisateur", email, loginMethod: "firebase", role: email === "admin@tontine.local" || u.displayName?.toLowerCase() === "admin" ? "admin" : "user", createdAt: new Date(u.metadata.creationTime ?? now), updatedAt: now, lastSignedIn: new Date(u.metadata.lastSignInTime ?? now) }; };
+const friendly = (e: any) => { if (e?.code === "auth/network-request-failed") return new Error("Connexion impossible. Vérifiez Internet puis réessayez."); if (["auth/invalid-credential", "auth/user-not-found", "auth/wrong-password"].includes(e?.code)) return new Error("Identifiant ou mot de passe incorrect."); return e instanceof Error ? e : new Error("Connexion impossible."); };
+export function useAuth(_options?: UseAuthOptions) { const [authUser, setAuthUser] = useState<FirebaseUser | null>(null); const [loading, setLoading] = useState(true); const [error, setError] = useState<Error | null>(null); useEffect(() => onAuthStateChanged(firebaseAuth, u => { setAuthUser(u); setLoading(false); }), []); const logout = useCallback(async () => { await signOut(firebaseAuth); }, []); const signIn = useCallback(async (id: string, password: string) => { const email = emailOf(id); const normalized = passwordOf(id, password); try { setError(null); return await signInWithEmailAndPassword(firebaseAuth, email, normalized); } catch (e: any) { if ((id.trim().toLowerCase() === "admin" || id.trim().toLowerCase() === "user" || id.trim().toLowerCase() === "users") && ["auth/invalid-credential", "auth/user-not-found", "auth/wrong-password"].includes(e?.code)) { try { const created = await createUserWithEmailAndPassword(firebaseAuth, email, normalized); if (id.trim().toLowerCase() === "admin") await updateProfile(created.user, { displayName: "admin" }); return created; } catch (creationError: any) { if (creationError?.code === "auth/email-already-in-use") throw friendly(e); throw friendly(creationError); } } const x = friendly(e); setError(x); throw x; } }, []); const signUp = useCallback(async (id: string, password: string, fullName: string) => { try { const r = await createUserWithEmailAndPassword(firebaseAuth, emailOf(id), passwordOf(id, password)); if (fullName.trim()) await updateProfile(r.user, { displayName: fullName.trim() }); return { user: r.user, session: r.user }; } catch (e) { const x = friendly(e); setError(x); throw x; } }, []); const refresh = useCallback(async () => { await firebaseAuth.currentUser?.getIdToken(true); setAuthUser(firebaseAuth.currentUser); }, []); const recoverSession = useCallback(async () => { await signOut(firebaseAuth); setAuthUser(null); setError(null); }, []); const user = useMemo(() => authUser ? appUser(authUser) : null, [authUser]); return { user, loading, error, isAuthenticated: Boolean(user), logout, signIn, signUp, refresh, recoverSession }; }
