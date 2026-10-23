@@ -84,22 +84,44 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (loading) return <DashboardLayoutSkeleton />;
   if (!user) {
     return (
-      <div className="auth-shell relative grid min-h-screen place-items-center bg-background px-6 py-20">
-        <div className="absolute right-5 top-5 sm:right-8 sm:top-8"><ThemeToggle /></div>
-        <div className="auth-card w-full max-w-md rounded-3xl border border-border bg-card p-8 text-center shadow-[0_24px_80px_-36px_rgba(18,66,52,0.35)]">
-          <div className="mx-auto mb-6 grid h-14 w-14 place-items-center rounded-2xl bg-[#285d68] text-[#f2c766]"><WalletCards className="h-7 w-7" /></div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6a7c71]">Caisse Familiale</p>
-          <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#243447]">Votre caisse, en toute clarté.</h1>
-          <p className="mt-3 text-sm leading-6 text-[#718078]">Connectez-vous pour consulter les cotisations, le solde commun et les mouvements familiaux.</p>
-          <form className="mt-7 space-y-3 text-left" onSubmit={async (event) => { event.preventDefault(); setAuthSubmitting(true); setAuthNotice(""); try { if (authMode === "signup") { const result = await signUp(authEmail, authPassword, authName); if (!result.session) setAuthNotice("Compte créé. Vérifiez votre e-mail pour confirmer l’inscription."); } else { await signIn(authEmail, authPassword); } } catch {} finally { setAuthSubmitting(false); } }}>
-            {authMode === "signup" && <Input value={authName} onChange={(event) => setAuthName(event.target.value)} placeholder="Nom complet" required className="h-11 rounded-xl" />}
-            <Input type="text" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} placeholder="Identifiant" required className="h-11 rounded-xl" />
-            <Input type="password" value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} placeholder="Mot de passe" minLength={5} required className="h-11 rounded-xl" />
-            {(authError || undefined) && <p className="rounded-xl bg-[#fff2ef] px-3 py-2 text-xs leading-5 text-[#a64e43]">{authError?.message}</p>}
-            {authNotice && <p className="rounded-xl bg-[#edf3f1] px-3 py-2 text-xs leading-5 text-[#23734c]">{authNotice}</p>}
-            <Button type="submit" disabled={authSubmitting} size="lg" className="w-full rounded-xl bg-[#285d68] text-white hover:bg-[#214e58]">{authSubmitting ? <span className="flex items-center justify-center gap-2"><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />Connexion…</span> : authMode === "signup" ? "Créer mon compte" : "Se connecter"}</Button>
-          </form>
-          <button type="button" onClick={() => setAuthMode(authMode === "signin" ? "signup" : "signin")} className="mt-4 text-xs font-semibold text-[#285d68] hover:underline">{authMode === "signin" ? "Créer un compte familial" : "J’ai déjà un compte"}</button>
+      <div className="auth-shell relative grid min-h-screen place-items-center px-5 py-24 sm:px-8">
+        <div className="absolute right-5 top-5 z-10 sm:right-8 sm:top-8"><ThemeToggle /></div>
+        <div className="auth-stage">
+          <section className="auth-showcase" aria-label="Bienvenue dans Caisse Familiale">
+            <div className="auth-brand">
+              <span className="auth-brand-mark"><WalletCards className="h-6 w-6" /></span>
+              <span><strong>CAISSE FAMILIALE</strong><small>GESTION SOLIDAIRE</small></span>
+            </div>
+            <div className="auth-showcase-copy">
+              <p className="auth-eyebrow">ENSEMBLE, EN TOUTE CONFIANCE</p>
+              <h2>La solidarité<br /><em>avec clarté.</em></h2>
+              <p>Une vision sereine de votre caisse familiale : les contributions, le solde commun et chaque mouvement réunis au même endroit.</p>
+            </div>
+            <div className="auth-showcase-footer">
+              <span className="auth-seal" aria-hidden="true">✦</span>
+              <span>La confiance se construit<br />dans la transparence.</span>
+              <span className="auth-footer-rule" />
+              <span className="auth-footer-index">01 — 03</span>
+            </div>
+          </section>
+          <section className="auth-card">
+            <p className="auth-kicker">ESPACE FAMILIAL</p>
+            <h1>{authMode === "signin" ? "Heureux de vous revoir" : "Bienvenue dans votre caisse"}</h1>
+            <p className="auth-intro">{authMode === "signin" ? "Connectez-vous pour retrouver votre espace en toute sécurité." : "Créez votre espace familial et suivez vos cotisations en toute simplicité."}</p>
+            <form className="auth-form" onSubmit={async (event) => { event.preventDefault(); setAuthSubmitting(true); setAuthNotice(""); try { if (authMode === "signup") { const result = await signUp(authEmail, authPassword, authName); if (!result.session) setAuthNotice("Compte créé. Vérifiez votre e-mail pour confirmer l’inscription."); } else { await signIn(authEmail, authPassword); } } catch {} finally { setAuthSubmitting(false); } }}>
+              {authMode === "signup" && <Input value={authName} onChange={(event) => setAuthName(event.target.value)} placeholder="Nom complet" required className="h-11 rounded-xl" />}
+              <Input type="text" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} placeholder="Identifiant" required className="h-11 rounded-xl" />
+              <Input type="password" value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} placeholder="Mot de passe" minLength={5} required className="h-11 rounded-xl" />
+              {(authError || undefined) && <p className="auth-message auth-error">{authError?.message}</p>}
+              {authNotice && <p className="auth-message auth-success">{authNotice}</p>}
+              <Button type="submit" disabled={authSubmitting} size="lg" className="auth-submit w-full rounded-xl">{authSubmitting ? <span className="flex items-center justify-center gap-2"><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />Connexion…</span> : authMode === "signup" ? "Créer mon compte" : "Se connecter"}</Button>
+            </form>
+            <div className="auth-switch-row">
+              <span>{authMode === "signin" ? "Nouveau dans votre caisse ?" : "Vous avez déjà un compte ?"}</span>
+              <button type="button" onClick={() => setAuthMode(authMode === "signin" ? "signup" : "signin")} className="auth-switch">{authMode === "signin" ? "Créer un compte" : "Se connecter"}</button>
+            </div>
+            <p className="auth-privacy"><span aria-hidden="true">◆</span> Votre espace familial, privé et sécurisé</p>
+          </section>
         </div>
       </div>
     );
@@ -156,30 +178,30 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
   return (
     <>
       <div className="relative" ref={sidebarRef}>
-        <Sidebar collapsible="icon" className="border-r border-[#ded6c9] bg-sidebar" disableTransition={isResizing}>
-          <SidebarHeader className="h-[76px] justify-center border-b border-[#ded6c9]">
+        <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar" disableTransition={isResizing}>
+          <SidebarHeader className="h-[76px] justify-center border-b border-sidebar-border">
             <div className="flex w-full items-center gap-3 px-2">
-              <button onClick={toggleSidebar} className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#285d68] text-[#f2c766] transition active:scale-95" aria-label="Réduire le menu"><PanelLeft className="h-4 w-4" /></button>
-              {!isCollapsed && <div className="min-w-0"><p className="truncate text-[13px] font-semibold tracking-tight text-[#243447]">Caisse Familiale</p><p className="truncate text-[11px] text-[#7b8589]">Gestion solidaire</p></div>}
+              <button onClick={toggleSidebar} className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground transition active:scale-95" aria-label="Réduire le menu"><PanelLeft className="h-4 w-4" /></button>
+              {!isCollapsed && <div className="min-w-0"><p className="truncate text-[13px] font-semibold tracking-tight text-sidebar-foreground">Caisse Familiale</p><p className="truncate text-[11px] text-muted-foreground">Gestion solidaire</p></div>}
             </div>
           </SidebarHeader>
           <SidebarContent className="gap-0 px-2 py-4">
-            <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[#91a098] group-data-[collapsible=icon]:hidden">Navigation</div>
+            <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground group-data-[collapsible=icon]:hidden">Navigation</div>
             <SidebarMenu>
               {visibleItems.map((item) => {
                 const isActive = location === item.path;
-                return <SidebarMenuItem key={item.path}><SidebarMenuButton isActive={isActive} onClick={() => { setLocation(item.path); if (isMobile) setOpenMobile(false); }} tooltip={item.label} className={`h-11 rounded-xl font-medium transition-all ${isActive ? "bg-[#f2c766] text-[#243447] shadow-sm hover:bg-[#f2c766]" : "text-[#63747a] hover:bg-white hover:text-[#243447]"}`}><item.icon className="h-[17px] w-[17px]" /><span>{item.label}</span>{isActive && !isCollapsed && <ChevronRight className="ml-auto h-3.5 w-3.5" />}</SidebarMenuButton></SidebarMenuItem>;
+                return <SidebarMenuItem key={item.path}><SidebarMenuButton isActive={isActive} onClick={() => { setLocation(item.path); if (isMobile) setOpenMobile(false); }} tooltip={item.label} className={`h-11 rounded-xl font-medium transition-all ${isActive ? "bg-[#f2c766] text-[#243447] shadow-sm hover:bg-[#f2c766]" : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-foreground"}`}><item.icon className="h-[17px] w-[17px]" /><span>{item.label}</span>{isActive && !isCollapsed && <ChevronRight className="ml-auto h-3.5 w-3.5" />}</SidebarMenuButton></SidebarMenuItem>;
               })}
             </SidebarMenu>
           </SidebarContent>
-          <SidebarFooter className="border-t border-[#ded6c9] p-3">
+          <SidebarFooter className="border-t border-sidebar-border p-3">
             <DropdownMenu>
-              <DropdownMenuTrigger asChild><button className="flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#285d68]"><Avatar className="h-9 w-9 shrink-0 border-2 border-white shadow-sm"><AvatarFallback className="bg-[#dcefe5] text-xs font-bold text-[#285d68]">{user?.name?.charAt(0).toUpperCase() ?? "U"}</AvatarFallback></Avatar><div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden"><p className="truncate text-sm font-semibold text-[#243447]">{user?.name || "Utilisateur"}</p><p className="mt-0.5 truncate text-[11px] text-[#7b8589]">{user?.role === "admin" ? "Administrateur" : "Membre"}</p></div></button></DropdownMenuTrigger>
+              <DropdownMenuTrigger asChild><button className="flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left transition hover:bg-sidebar-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"><Avatar className="h-9 w-9 shrink-0 border-2 border-white shadow-sm"><AvatarFallback className="bg-accent text-xs font-bold text-accent-foreground">{user?.name?.charAt(0).toUpperCase() ?? "U"}</AvatarFallback></Avatar><div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden"><p className="truncate text-sm font-semibold text-sidebar-foreground">{user?.name || "Utilisateur"}</p><p className="mt-0.5 truncate text-[11px] text-muted-foreground">{user?.role === "admin" ? "Administrateur" : "Membre"}</p></div></button></DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52"><DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600 focus:text-red-600"><LogOut className="mr-2 h-4 w-4" />Se déconnecter</DropdownMenuItem></DropdownMenuContent>
             </DropdownMenu>
           </SidebarFooter>
         </Sidebar>
-        <div className={`absolute right-0 top-0 z-50 h-full w-1 cursor-col-resize transition-colors hover:bg-[#285d68]/20 ${isCollapsed ? "hidden" : ""}`} onMouseDown={() => setIsResizing(true)} />
+        <div className={`absolute right-0 top-0 z-50 h-full w-1 cursor-col-resize transition-colors hover:bg-primary/20 ${isCollapsed ? "hidden" : ""}`} onMouseDown={() => setIsResizing(true)} />
       </div>
       <SidebarInset className="bg-background">
         <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur sm:px-6 lg:px-8"><div className="flex items-center gap-2">{isMobile && <SidebarTrigger className="h-9 w-9 rounded-xl bg-card" />}<span className="text-sm font-semibold text-foreground">{activeMenuItem?.label ?? "Caisse Familiale"}</span></div><ThemeToggle theme={theme} toggleTheme={toggleTheme} /></div>
