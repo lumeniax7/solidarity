@@ -1,4 +1,4 @@
-const VERSION = "caisse-familiale-pwa-v3";
+const VERSION = "caisse-familiale-pwa-v4";
 const APP_CACHE = `${VERSION}-app`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const BASE_PATH = new URL("./", self.registration.scope).pathname;
@@ -9,26 +9,42 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => !key.startsWith(VERSION)).map((key) => caches.delete(key)))).then(() => self.clients.claim()));
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((key) => !key.startsWith(VERSION)).map((key) => caches.delete(key))))
+      .then(() => self.clients.claim()),
+  );
 });
 
 async function cacheAsset(request) {
   const cache = await caches.open(ASSET_CACHE);
   const cached = await cache.match(request);
-  const network = fetch(request).then((response) => { if (response.ok) void cache.put(request, response.clone()); return response; }).catch(() => cached);
-  return cached || network;
+  if (cached) {
+    void fetch(request).then((response) => { if (response.ok) void cache.put(request, response.clone()); }).catch(() => undefined);
+    return cached;
+  }
+  try {
+    const response = await fetch(request);
+    if (response.ok) void cache.put(request, response.clone());
+    return response;
+  } catch {
+    return Response.error();
+  }
 }
 
 async function cacheNavigation(request) {
   const cache = await caches.open(APP_CACHE);
   const cached = await cache.match(request) || await cache.match(`${BASE_PATH}index.html`);
-  try {
-    const response = await fetch(request);
+  const network = fetch(request).then((response) => {
     if (response.ok) void cache.put(`${BASE_PATH}index.html`, response.clone());
     return response;
-  } catch {
-    return cached || Response.error();
+  }).catch(() => cached || Response.error());
+  // Afficher immédiatement l’interface déjà enregistrée, puis la mettre à jour en arrière-plan.
+  if (cached) {
+    void network;
+    return cached;
   }
+  return network;
 }
 
 self.addEventListener("fetch", (event) => {
