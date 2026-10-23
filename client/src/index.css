@@ -368,3 +368,20 @@ table tbody tr:hover { background-color: color-mix(in srgb, var(--primary) 5%, v
 
 .dashboard-hero [class~="text-[#afd6bd]"], .dashboard-hero [class~="text-[#c7e0d0]"] { color: #d9efe2 !important; }
 .dark .dashboard-hero [class~="text-[#afd6bd]"], .dark .dashboard-hero [class~="text-[#c7e0d0]"] { color: var(--success) !important; }
+
+/* Panneaux de synthèse et séries statistiques : couleurs de texte choisies selon leur fond réel. */
+.dashboard-data-panel[class~="bg-[#285d68]"] {
+  border-color: rgb(239 226 190 / 25%) !important;
+  background: radial-gradient(ellipse 75% 120% at 4% 0%, rgb(79 166 133 / 27%), transparent 58%), linear-gradient(128deg, #124f47 0%, #195d53 60%, #224b48 100%) !important;
+  box-shadow: 0 18px 46px -32px rgb(18 79 66 / 62%);
+}
+.dark .dashboard-data-panel[class~="bg-[#285d68]"] {
+  background: radial-gradient(ellipse 72% 118% at 4% 0%, rgb(44 127 105 / 22%), transparent 58%), linear-gradient(128deg, #0e3a36 0%, #123c3b 60%, #142c30 100%) !important;
+}
+.dashboard-data-panel [class~="text-[#b8dac4]"], .dashboard-data-panel [class~="text-[#afd6bd]"], .dashboard-data-panel [class~="text-[#c7e0d0]"] { color: #d9efe2 !important; }
+.dashboard-data-panel [class~="text-[#f2c766]"], .dashboard-data-panel [class~="text-[#e5b553]"] { color: #ffe4a3 !important; }
+.dark .dashboard-data-panel [class~="text-[#b8dac4]"], .dark .dashboard-data-panel [class~="text-[#afd6bd]"], .dark .dashboard-data-panel [class~="text-[#c7e0d0]"] { color: var(--success) !important; }
+.dark .dashboard-data-panel [class~="text-[#f2c766]"], .dark .dashboard-data-panel [class~="text-[#e5b553]"] { color: var(--warning) !important; }
+.chart-progress-fill[class~="bg-[#8bc9a1]"] { background-color: var(--success) !important; }
+.chart-progress-fill[class~="bg-[#ee9c8d]"] { background-color: var(--destructive) !important; }
+.chart-progress-fill[class~="bg-[#f2c766]"] { background-color: var(--warning) !important; }
