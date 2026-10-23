@@ -1,4 +1,4 @@
-const VERSION = "caisse-familiale-pwa-v6";
+const VERSION = "caisse-familiale-pwa-v7";
 const APP_CACHE = `${VERSION}-app`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const BASE_PATH = new URL("./", self.registration.scope).pathname;
@@ -37,7 +37,7 @@ async function cacheNavigation(request) {
   try {
     // Version the navigation URL to bypass stale edge-cached HTML on deployment.
     const freshUrl = new URL(request.url);
-    freshUrl.searchParams.set("__app_version", VERSION);
+    freshUrl.searchParams.set("__app_version", `${VERSION}-${Date.now().toString(36)}`);
     const freshRequest = new Request(freshUrl, request);
     const response = await fetch(freshRequest, { cache: "no-store" });
     if (response.ok) {
