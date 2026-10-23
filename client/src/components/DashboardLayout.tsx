@@ -83,7 +83,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (loading) return <DashboardLayoutSkeleton />;
   if (!user) {
     return (
-      <div className="min-h-screen grid place-items-center bg-[#fbf8f1] px-6">
+      <div className="min-h-screen grid place-items-center bg-background px-6">
         <div className="w-full max-w-md rounded-3xl border border-[#e5ded2] bg-white p-8 text-center shadow-[0_24px_80px_-36px_rgba(18,66,52,0.35)]">
           <div className="mx-auto mb-6 grid h-14 w-14 place-items-center rounded-2xl bg-[#285d68] text-[#f2c766]"><WalletCards className="h-7 w-7" /></div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6a7c71]">Caisse Familiale</p>
@@ -158,7 +158,7 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
   return (
     <>
       <div className="relative" ref={sidebarRef}>
-        <Sidebar collapsible="icon" className="border-r border-[#ded6c9] bg-[#f4f0e8]" disableTransition={isResizing}>
+        <Sidebar collapsible="icon" className="border-r border-[#ded6c9] bg-sidebar" disableTransition={isResizing}>
           <SidebarHeader className="h-[76px] justify-center border-b border-[#ded6c9]">
             <div className="flex w-full items-center gap-3 px-2">
               <button onClick={toggleSidebar} className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#285d68] text-[#f2c766] transition active:scale-95" aria-label="Réduire le menu"><PanelLeft className="h-4 w-4" /></button>
@@ -175,17 +175,16 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter className="border-t border-[#ded6c9] p-3">
-            <button type="button" onClick={() => setTheme((value) => value === "light" ? "dark" : "light")} className="mb-2 flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-xs font-semibold text-[#63747a] transition hover:bg-white hover:text-[#243447]" aria-label={theme === "light" ? "Activer le mode nuit" : "Activer le mode jour"}><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#edf3f1] text-[#285d68]">{theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}</span><span className="group-data-[collapsible=icon]:hidden">{theme === "light" ? "Mode nuit" : "Mode jour"}</span></button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild><button className="flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#285d68]"><Avatar className="h-9 w-9 shrink-0 border-2 border-white shadow-sm"><AvatarFallback className="bg-[#dcefe5] text-xs font-bold text-[#285d68]">{user?.name?.charAt(0).toUpperCase() ?? "U"}</AvatarFallback></Avatar><div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden"><p className="truncate text-sm font-semibold text-[#243447]">{user?.name || "Utilisateur"}</p><p className="mt-0.5 truncate text-[11px] text-[#7b8589]">{user?.role === "admin" ? "Administrateur" : "Membre"}</p></div></button></DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52"><DropdownMenuItem onClick={() => setTheme((value) => value === "light" ? "dark" : "light")} className="cursor-pointer"><span className="mr-2 grid h-4 w-4 place-items-center">{theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}</span>{theme === "light" ? "Mode nuit" : "Mode jour"}</DropdownMenuItem><DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600 focus:text-red-600"><LogOut className="mr-2 h-4 w-4" />Se déconnecter</DropdownMenuItem></DropdownMenuContent>
+              <DropdownMenuContent align="end" className="w-52"><DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600 focus:text-red-600"><LogOut className="mr-2 h-4 w-4" />Se déconnecter</DropdownMenuItem></DropdownMenuContent>
             </DropdownMenu>
           </SidebarFooter>
         </Sidebar>
         <div className={`absolute right-0 top-0 z-50 h-full w-1 cursor-col-resize transition-colors hover:bg-[#285d68]/20 ${isCollapsed ? "hidden" : ""}`} onMouseDown={() => setIsResizing(true)} />
       </div>
-      <SidebarInset className="bg-[#fbf8f1]">
-        {isMobile && <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-[#ded6c9] bg-[#fbf8f1]/95 px-4 backdrop-blur"><div className="flex items-center gap-2"><SidebarTrigger className="h-9 w-9 rounded-xl bg-white" /><span className="text-sm font-semibold text-[#243447]">{activeMenuItem?.label ?? "Caisse Familiale"}</span></div><button type="button" onClick={() => setTheme((value) => value === "light" ? "dark" : "light")} className="grid h-9 w-9 place-items-center rounded-xl bg-white text-[#285d68] shadow-sm" aria-label={theme === "light" ? "Activer le mode nuit" : "Activer le mode jour"}>{theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}</button></div>}
+      <SidebarInset className="bg-background">
+        <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur sm:px-6 lg:px-8"><div className="flex items-center gap-2">{isMobile && <SidebarTrigger className="h-9 w-9 rounded-xl bg-card" />}<span className="text-sm font-semibold text-foreground">{activeMenuItem?.label ?? "Caisse Familiale"}</span></div><button type="button" onClick={() => setTheme((value) => value === "light" ? "dark" : "light")} className="flex h-9 items-center gap-2 rounded-xl border border-border bg-card px-3 text-xs font-semibold text-primary shadow-sm" aria-label={theme === "light" ? "Activer le mode nuit" : "Activer le mode jour"}>{theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}<span className="hidden sm:inline">{theme === "light" ? "Mode nuit" : "Mode jour"}</span></button></div>
         <main className="min-h-[calc(100vh-3.5rem)] p-4 sm:p-6 lg:p-8">{children}</main>
       </SidebarInset>
     </>

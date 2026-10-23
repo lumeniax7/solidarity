@@ -43,9 +43,9 @@
 }
 
 :root {
-  --primary: #285d68;
+  --primary: #23636d;
   --primary-foreground: #ffffff;
-  --sidebar-primary: #285d68;
+  --sidebar-primary: #23636d;
   --sidebar-primary-foreground: #ffffff;
   --chart-1: #8bc9a1;
   --chart-2: #285d68;
@@ -53,7 +53,7 @@
   --chart-4: #e58b70;
   --chart-5: #c58b4b;
   --radius: 0.7rem;
-  --background: #fbf8f1;
+  --background: #f7f5ef;
   --foreground: #243447;
   --card: #ffffff;
   --card-foreground: #243447;
@@ -69,13 +69,13 @@
   --destructive-foreground: #ffffff;
   --border: #e5ded2;
   --input: #d8ccba;
-  --ring: #285d68;
-  --sidebar: #f4f0e8;
+  --ring: #23636d;
+  --sidebar: #edf3ee;
   --sidebar-foreground: #243447;
   --sidebar-accent: #ffffff;
   --sidebar-accent-foreground: #243447;
   --sidebar-border: #ded6c9;
-  --sidebar-ring: #285d68;
+  --sidebar-ring: #23636d;
 }
 
 .dark {
@@ -83,9 +83,9 @@
   --primary-foreground: #243447;
   --sidebar-primary: #f2c766;
   --sidebar-primary-foreground: #243447;
-  --background: #101d1a;
+  --background: #0d1b19;
   --foreground: #edf6ef;
-  --card: #19342b;
+  --card: #17352d;
   --card-foreground: #e6f0e7;
   --popover: #18362b;
   --popover-foreground: #e6f0e7;
@@ -124,11 +124,10 @@
   /* Smooth, readable dark mode for the legacy utility colors used by the screens. */
   body {
     background-color: var(--background);
-    background-image: radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--accent) 72%, transparent) 0 1px, transparent 1.5px), radial-gradient(circle at 86% 18%, color-mix(in srgb, var(--primary) 9%, transparent) 0 1px, transparent 1.5px), linear-gradient(135deg, transparent 0 49.5%, color-mix(in srgb, var(--primary) 4%, transparent) 50% 50.5%, transparent 51% 100%);
-    background-size: 24px 24px, 32px 32px, 18px 18px;
+    background-image: radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--accent) 88%, transparent) 0, transparent 34%), radial-gradient(circle at 100% 12%, color-mix(in srgb, var(--chart-3) 12%, transparent) 0, transparent 30%), linear-gradient(145deg, var(--background) 0%, color-mix(in srgb, var(--background) 88%, var(--card)) 100%);
     background-attachment: fixed;
   }
-  .dark body { color-scheme: dark; background-image: radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--primary) 14%, transparent) 0 1px, transparent 1.5px), linear-gradient(135deg, transparent 0 49.5%, color-mix(in srgb, var(--primary) 8%, transparent) 50% 50.5%, transparent 51% 100%); }
+  .dark body { color-scheme: dark; background-image: radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--primary) 14%, transparent) 0, transparent 34%), radial-gradient(circle at 100% 18%, color-mix(in srgb, var(--chart-3) 8%, transparent) 0, transparent 28%), linear-gradient(145deg, var(--background) 0%, var(--card) 100%); }
   button, [role="button"], select { letter-spacing: -0.005em; }
   .dark body { color-scheme: dark; }
   .dark [class*="bg-white"] { background-color: var(--card) !important; }
