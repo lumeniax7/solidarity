@@ -41,7 +41,7 @@ function Router() {
 }
 
 function App() {
-  return <ErrorBoundary><ThemeProvider defaultTheme="light"><TooltipProvider><Toaster /><WouterRouter hook={useHashLocation}><DashboardLayout><Router /></DashboardLayout></WouterRouter></TooltipProvider></ThemeProvider></ErrorBoundary>;
+  return <ErrorBoundary><ThemeProvider defaultTheme="light" switchable><TooltipProvider><Toaster /><WouterRouter hook={useHashLocation}><DashboardLayout><Router /></DashboardLayout></WouterRouter></TooltipProvider></ThemeProvider></ErrorBoundary>;
 }
 
 export default App;

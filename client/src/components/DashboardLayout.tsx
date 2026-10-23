@@ -32,14 +32,15 @@ import {
   LogOut,
   PanelLeft,
   Moon,
+  Sun,
   Settings2,
   ShieldCheck,
-  Sun,
   WalletCards,
   Users,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
+import { useTheme } from "../contexts/ThemeContext";
 import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -83,8 +84,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (loading) return <DashboardLayoutSkeleton />;
   if (!user) {
     return (
-      <div className="min-h-screen grid place-items-center bg-background px-6">
-        <div className="w-full max-w-md rounded-3xl border border-[#e5ded2] bg-white p-8 text-center shadow-[0_24px_80px_-36px_rgba(18,66,52,0.35)]">
+      <div className="auth-shell relative grid min-h-screen place-items-center bg-background px-6 py-20">
+        <div className="absolute right-5 top-5 sm:right-8 sm:top-8"><ThemeToggle /></div>
+        <div className="auth-card w-full max-w-md rounded-3xl border border-border bg-card p-8 text-center shadow-[0_24px_80px_-36px_rgba(18,66,52,0.35)]">
           <div className="mx-auto mb-6 grid h-14 w-14 place-items-center rounded-2xl bg-[#285d68] text-[#f2c766]"><WalletCards className="h-7 w-7" /></div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6a7c71]">Caisse Familiale</p>
           <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#243447]">Votre caisse, en toute clarté.</h1>
@@ -116,7 +118,7 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar, setOpenMobile } = useSidebar();
-  const [theme, setTheme] = useState<"light" | "dark">(() => localStorage.getItem("caisse-theme") === "dark" ? "dark" : "light");
+  const { theme, toggleTheme } = useTheme();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -124,10 +126,6 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
   const visibleItems = menuItems.filter((item) => !item.adminOnly || user?.role === "admin");
   const activeMenuItem = visibleItems.find((item) => item.path === location);
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    localStorage.setItem("caisse-theme", theme);
-  }, [theme]);
 
   useEffect(() => {
     if (isCollapsed) setIsResizing(false);
@@ -184,9 +182,22 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
         <div className={`absolute right-0 top-0 z-50 h-full w-1 cursor-col-resize transition-colors hover:bg-[#285d68]/20 ${isCollapsed ? "hidden" : ""}`} onMouseDown={() => setIsResizing(true)} />
       </div>
       <SidebarInset className="bg-background">
-        <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur sm:px-6 lg:px-8"><div className="flex items-center gap-2">{isMobile && <SidebarTrigger className="h-9 w-9 rounded-xl bg-card" />}<span className="text-sm font-semibold text-foreground">{activeMenuItem?.label ?? "Caisse Familiale"}</span></div><button type="button" onClick={() => setTheme((value) => value === "light" ? "dark" : "light")} className="flex h-9 items-center gap-2 rounded-xl border border-border bg-card px-3 text-xs font-semibold text-primary shadow-sm" aria-label={theme === "light" ? "Activer le mode nuit" : "Activer le mode jour"}>{theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}<span className="hidden sm:inline">{theme === "light" ? "Mode nuit" : "Mode jour"}</span></button></div>
+        <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur sm:px-6 lg:px-8"><div className="flex items-center gap-2">{isMobile && <SidebarTrigger className="h-9 w-9 rounded-xl bg-card" />}<span className="text-sm font-semibold text-foreground">{activeMenuItem?.label ?? "Caisse Familiale"}</span></div><ThemeToggle theme={theme} toggleTheme={toggleTheme} /></div>
         <main className="min-h-[calc(100vh-3.5rem)] p-4 sm:p-6 lg:p-8">{children}</main>
       </SidebarInset>
     </>
+  );
+}
+
+function ThemeToggle({ theme: themeProp, toggleTheme: toggleProp }: { theme?: "light" | "dark"; toggleTheme?: () => void }) {
+  const context = useTheme();
+  const theme = themeProp ?? context.theme;
+  const toggleTheme = toggleProp ?? context.toggleTheme;
+  const nextMode = theme === "light" ? "nuit" : "jour";
+  return (
+    <button type="button" onClick={toggleTheme} className="theme-toggle inline-flex h-10 items-center gap-2 rounded-xl border border-primary/25 bg-card px-3.5 text-xs font-bold text-primary shadow-md hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" aria-label={`Activer le mode ${nextMode}`} title={`Activer le mode ${nextMode}`}>
+      {theme === "light" ? <Moon className="h-4 w-4" aria-hidden="true" /> : <Sun className="h-4 w-4" aria-hidden="true" />}
+      <span>Mode {nextMode}</span>
+    </button>
   );
 }
