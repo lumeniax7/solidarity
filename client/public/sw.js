@@ -1,4 +1,4 @@
-const VERSION = "caisse-familiale-pwa-v4";
+const VERSION = "caisse-familiale-pwa-v5";
 const APP_CACHE = `${VERSION}-app`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const BASE_PATH = new URL("./", self.registration.scope).pathname;
@@ -34,19 +34,18 @@ async function cacheAsset(request) {
 
 async function cacheNavigation(request) {
   const cache = await caches.open(APP_CACHE);
-  const cached = await cache.match(request) || await cache.match(`${BASE_PATH}index.html`);
-  const network = fetch(request).then((response) => {
-    if (response.ok) void cache.put(`${BASE_PATH}index.html`, response.clone());
+  try {
+    // Prefer the published shell so hashed assets always match the current release.
+    const response = await fetch(request, { cache: "no-cache" });
+    if (response.ok) {
+      await cache.put(`${BASE_PATH}index.html`, response.clone());
+    }
     return response;
-  }).catch(() => cached || Response.error());
-  // Afficher immédiatement l’interface déjà enregistrée, puis la mettre à jour en arrière-plan.
-  if (cached) {
-    void network;
-    return cached;
+  } catch {
+    const cached = await cache.match(request) || await cache.match(`${BASE_PATH}index.html`);
+    return cached || Response.error();
   }
-  return network;
 }
-
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
