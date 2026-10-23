@@ -77,6 +77,16 @@
   --sidebar-accent-foreground: #1b302d;
   --sidebar-border: #d2dbd1;
   --sidebar-ring: #17685e;
+  --brand-fill: #17685e;
+  --surface-soft: #f7f6f1;
+  --success: #286647;
+  --success-soft: #e5efe7;
+  --success-border: #ccdecf;
+  --warning: #825c1c;
+  --warning-soft: #fbf2df;
+  --warning-border: #e7d9ba;
+  --danger-soft: #faecea;
+  --danger-border: #ead0cc;
 }
 
 .dark {
@@ -113,6 +123,16 @@
   --sidebar-accent-foreground: #f4eddf;
   --sidebar-border: #2a3b3d;
   --sidebar-ring: #dfbd76;
+  --brand-fill: #1d6255;
+  --surface-soft: #1a2a2c;
+  --success: #95cda4;
+  --success-soft: #1d3630;
+  --success-border: #345348;
+  --warning: #e0bd75;
+  --warning-soft: #383022;
+  --warning-border: #584a2d;
+  --danger-soft: #422d2b;
+  --danger-border: #60403d;
 }
 
 @layer base {
@@ -129,6 +149,7 @@
       linear-gradient(145deg, var(--background), color-mix(in srgb, var(--background) 88%, var(--card)));
     background-attachment: fixed;
   }
+  h1, h2, h3, h4, h5, h6 { font-family: "Playfair Display", Georgia, serif; font-weight: 500; letter-spacing: -0.025em; }
   button:not(:disabled), [role="button"]:not([aria-disabled="true"]), [type="button"]:not(:disabled), [type="submit"]:not(:disabled), [type="reset"]:not(:disabled), a[href], select:not(:disabled), input[type="checkbox"]:not(:disabled), input[type="radio"]:not(:disabled) { @apply cursor-pointer; }
 }
 
@@ -136,15 +157,6 @@
   .container { width: 100%; margin-left: auto; margin-right: auto; padding-left: 1rem; padding-right: 1rem; }
   .flex { min-height: 0; min-width: 0; }
   button, [role="button"], select { letter-spacing: -0.005em; }
-  .dark [class*="bg-white"] { background-color: var(--card) !important; }
-  .dark [class*="bg-[#fbf8f1]"], .dark [class*="bg-[#f4f0e8]"], .dark [class*="bg-[#f8faf7]"] { background-color: var(--background) !important; }
-  .dark [class*="border-[#e5ded2]"], .dark [class*="border-[#ded6c9]"], .dark [class*="border-[#d8ccba]"] { border-color: var(--border) !important; }
-  .dark [class*="text-[#243447]"], .dark [class*="text-[#345347]"], .dark [class*="text-[#4b6558]"] { color: var(--foreground) !important; }
-  .dark [class*="bg-[#285d68]"] { background-color: var(--primary) !important; }
-  .dark [class*="bg-[#f2c766]"] { background-color: var(--primary) !important; }
-  .dark [class*="text-[#f2c766]"] { color: var(--primary-foreground) !important; }
-  .dark [class*="bg-[#fbf8f1]"], .dark [class*="bg-[#f4f0e8]"] { background-color: var(--background) !important; }
-  .dark input, .dark select, .dark textarea { color: var(--foreground); background-color: var(--card); border-color: var(--border); }
   .auth-shell {
     overflow: hidden;
     background-color: var(--background);
@@ -258,3 +270,44 @@ button:active:not(:disabled) { transform: scale(0.98); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+
+/* Palette bridge for the legacy dashboard utility classes. */
+:root, .dark { --font-ui: "Manrope", "DM Sans", ui-sans-serif, system-ui, sans-serif; }
+body { font-family: var(--font-ui); }
+h1, h2, h3, h4, h5, h6 { font-family: "Playfair Display", Georgia, serif; }
+.dashboard-canvas {
+  min-height: 100vh;
+  background-color: var(--background);
+  background-image: radial-gradient(ellipse 72% 48% at 0% 0%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 76%), radial-gradient(ellipse 54% 42% at 100% 100%, color-mix(in srgb, var(--chart-3) 8%, transparent), transparent 76%), linear-gradient(145deg, var(--background), color-mix(in srgb, var(--background) 92%, var(--card)));
+}
+.dark .dashboard-canvas { background-image: radial-gradient(ellipse 74% 52% at 0% 0%, color-mix(in srgb, #19766b 18%, transparent), transparent 76%), radial-gradient(ellipse 58% 46% at 100% 100%, color-mix(in srgb, #bd9650 10%, transparent), transparent 76%), linear-gradient(145deg, var(--background), #101d20); }
+
+[class*="bg-white"], [class*="bg-[#fffdf7]"] { background-color: var(--card) !important; }
+[class*="bg-[#fbf8f1]"], [class*="bg-[#f4f0e8]"], [class*="bg-[#f8faf7]"], [class*="bg-[#fbfcfa]"], [class*="bg-[#f5f8f4]"], [class*="bg-[#f4f8f3]"], [class*="bg-[#f1f7f0]"], [class*="bg-[#eef4ef]"], [class*="bg-[#f4f7f3]"] { background-color: var(--surface-soft) !important; }
+[class*="bg-[#285d68]"], [class*="bg-[#214e58]"] { background-color: var(--brand-fill) !important; }
+[class*="bg-[#edf3f1]"], [class*="bg-[#edf2ed]"], [class*="bg-[#e4f2e9]"], [class*="bg-[#e7f2e8]"], [class*="bg-[#eef7ef]"], [class*="bg-[#eef5ef]"], [class*="bg-[#eff7f0]"], [class*="bg-[#e8f1e9]"], [class*="bg-[#eef5cb]"], [class*="bg-[#edf7ef]"] { background-color: var(--success-soft) !important; }
+[class*="bg-[#f2c766]"] { background-color: var(--accent) !important; color: var(--accent-foreground) !important; }
+.dark [class*="bg-[#f2c766]"] { background-color: var(--primary) !important; color: var(--primary-foreground) !important; }
+[class*="bg-[#f2c766]"][class*="text-[#243447]"] { color: var(--accent-foreground) !important; }
+.dark [class*="bg-[#f2c766]"][class*="text-[#243447]"] { color: var(--primary-foreground) !important; }
+[class*="bg-[#fff8e7]"], [class*="bg-[#fff0d9]"], [class*="bg-[#ffecc7]"], [class*="bg-[#fff6e5]"], [class*="bg-[#fff2d5]"] { background-color: var(--warning-soft) !important; }
+[class*="bg-[#fff0ef]"], [class*="bg-[#fff5f4]"], [class*="bg-[#fff8f7]"], [class*="bg-[#fff1ec]"] { background-color: var(--danger-soft) !important; }
+[class*="bg-[#8bc9a1]"] { background-color: var(--success-soft) !important; }
+[class*="bg-[#ee9c8d]"] { background-color: var(--danger-soft) !important; }
+[class*="text-[#243447]"] { color: var(--foreground) !important; }
+[class*="text-[#285d68]"], [class*="text-[#214e58]"] { color: var(--primary) !important; }
+[class*="text-[#718078]"], [class*="text-[#8e9696]"], [class*="text-[#7c9487]"], [class*="text-[#7b8589]"], [class*="text-[#789085]"], [class*="text-[#819087]"], [class*="text-[#9aaa9f]"], [class*="text-[#8aa294]"], [class*="text-[#61756a]"], [class*="text-[#63747a]"], [class*="text-[#7d8f84]"], [class*="text-[#728379]"], [class*="text-[#8da094]"] { color: var(--muted-foreground) !important; }
+[class*="text-[#3e7256]"], [class*="text-[#345347]"], [class*="text-[#446356]"], [class*="text-[#23734c]"], [class*="text-[#526a5d]"], [class*="text-[#3e925c]"], [class*="text-[#466458]"], [class*="text-[#4b6558]"], [class*="text-[#4c715c]"], [class*="text-[#3f7950]"], [class*="text-[#496356]"], [class*="text-[#b8dac4]"], [class*="text-[#afd6bd]"], [class*="text-[#c7e0d0]"], [class*="text-[#4f681f]"] { color: var(--success) !important; }
+[class*="text-[#a8752a]"], [class*="text-[#80652c]"], [class*="text-[#aa8c5d]"], [class*="text-[#7b5a2d]"], [class*="text-[#806d52]"], [class*="text-[#4d3b22]"], [class*="text-[#9a631e]"] { color: var(--warning) !important; }
+[class*="text-[#b94d43]"], [class*="text-[#b65b48]"], [class*="text-[#9a4942]"] { color: var(--destructive) !important; }
+[class*="text-[#f2c766]"], [class*="text-[#e5b553]"] { color: var(--chart-3) !important; }
+[class*="border-[#e5ded2]"], [class*="border-[#d8ccba]"], [class*="border-[#edf1ed]"], [class*="border-[#cad8cd]"], [class*="border-[#cfe0d2]"], [class*="border-[#f0ebe3]"], [class*="border-[#e9d8b8]"] { border-color: var(--border) !important; }
+[class*="border-[#f0d2cf]"], [class*="border-[#f2d4d0]"], [class*="border-[#e58b70]"] { border-color: var(--danger-border) !important; }
+[class*="border-[#e8d3a5]"], [class*="border-[#e5b553]"] { border-color: var(--warning-border) !important; }
+[class*="border-[#9cc9a5]"] { border-color: var(--success-border) !important; }
+
+input:not([type="checkbox"]):not([type="radio"]), select, textarea { border-color: var(--input); background-color: color-mix(in srgb, var(--card) 88%, var(--background)); color: var(--foreground); }
+input::placeholder, textarea::placeholder { color: var(--muted-foreground); }
+table thead tr { background-color: var(--secondary); }
+table th { color: var(--muted-foreground); font-size: .72rem; font-weight: 700; letter-spacing: .075em; text-transform: uppercase; }
+table tbody tr:hover { background-color: color-mix(in srgb, var(--primary) 5%, var(--card)); }

@@ -190,7 +190,7 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
             <SidebarMenu>
               {visibleItems.map((item) => {
                 const isActive = location === item.path;
-                return <SidebarMenuItem key={item.path}><SidebarMenuButton isActive={isActive} onClick={() => { setLocation(item.path); if (isMobile) setOpenMobile(false); }} tooltip={item.label} className={`h-11 rounded-xl font-medium transition-all ${isActive ? "bg-[#f2c766] text-[#243447] shadow-sm hover:bg-[#f2c766]" : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-foreground"}`}><item.icon className="h-[17px] w-[17px]" /><span>{item.label}</span>{isActive && !isCollapsed && <ChevronRight className="ml-auto h-3.5 w-3.5" />}</SidebarMenuButton></SidebarMenuItem>;
+                return <SidebarMenuItem key={item.path}><SidebarMenuButton isActive={isActive} onClick={() => { setLocation(item.path); if (isMobile) setOpenMobile(false); }} tooltip={item.label} className={`h-11 rounded-xl font-medium transition-all ${isActive ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary" : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-foreground"}`}><item.icon className="h-[17px] w-[17px]" /><span>{item.label}</span>{isActive && !isCollapsed && <ChevronRight className="ml-auto h-3.5 w-3.5" />}</SidebarMenuButton></SidebarMenuItem>;
               })}
             </SidebarMenu>
           </SidebarContent>
@@ -203,7 +203,7 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
         </Sidebar>
         <div className={`absolute right-0 top-0 z-50 h-full w-1 cursor-col-resize transition-colors hover:bg-primary/20 ${isCollapsed ? "hidden" : ""}`} onMouseDown={() => setIsResizing(true)} />
       </div>
-      <SidebarInset className="bg-background">
+      <SidebarInset className="dashboard-canvas">
         <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur sm:px-6 lg:px-8"><div className="flex items-center gap-2">{isMobile && <SidebarTrigger className="h-9 w-9 rounded-xl bg-card" />}<span className="text-sm font-semibold text-foreground">{activeMenuItem?.label ?? "Caisse Familiale"}</span></div><ThemeToggle theme={theme} toggleTheme={toggleTheme} /></div>
         <main className="min-h-[calc(100vh-3.5rem)] p-4 sm:p-6 lg:p-8">{children}</main>
       </SidebarInset>
