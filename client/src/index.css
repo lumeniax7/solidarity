@@ -478,3 +478,11 @@ table tbody tr:hover { background-color: color-mix(in srgb, var(--primary) 5%, v
 @media (prefers-reduced-motion: reduce) {
   .statistics-chart-bar { animation: none; transition: none; }
 }
+
+.stats-line { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 900ms ease-out; }
+.stats-line-visible { stroke-dashoffset: 0; }
+.stats-chart-fade { animation: stats-fade-in 900ms ease-out both; }
+.stats-chart-dot { animation: stats-dot-in 500ms ease-out both; }
+@keyframes stats-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes stats-dot-in { from { opacity: 0; transform: scale(.4); transform-origin: center; } to { opacity: 1; transform: scale(1); transform-origin: center; } }
+@media (prefers-reduced-motion: reduce) { .stats-line { transition: none; stroke-dashoffset: 0; } .stats-chart-fade, .stats-chart-dot { animation: none; } }
