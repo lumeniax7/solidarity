@@ -205,7 +205,7 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
       </div>
       <SidebarInset className="dashboard-canvas">
         <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur sm:px-6 lg:px-8"><div className="flex items-center gap-2">{isMobile && <SidebarTrigger className="h-9 w-9 rounded-xl bg-card" />}<span className="text-sm font-semibold text-foreground">{activeMenuItem?.label ?? "Caisse Familiale"}</span></div><ThemeToggle theme={theme} toggleTheme={toggleTheme} /></div>
-        <main className="min-h-[calc(100vh-3.5rem)] p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="min-h-[calc(100vh-3.5rem)] p-4 sm:p-6 lg:p-8"><div key={location} className="dashboard-page-motion">{children}</div></main>
       </SidebarInset>
     </>
   );
