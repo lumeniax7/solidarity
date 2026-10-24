@@ -1,12 +1,21 @@
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { useEffect, useState } from "react";
 import { Route, Router as WouterRouter, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import DashboardLayout from "./components/DashboardLayout";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
+
+const Home = lazy(() => import("./pages/Home"));
+
+function HomeRoute() {
+  return (
+    <Suspense fallback={<div role="status" aria-live="polite" className="dashboard-page-loading grid min-h-[40vh] place-items-center px-5 text-sm text-muted-foreground">Chargement de votre espace familial…</div>}>
+      <Home />
+    </Suspense>
+  );
+}
 
 function useHashLocation(): [string, (next: string) => void] {
   const readHash = () => {
@@ -23,25 +32,40 @@ function useHashLocation(): [string, (next: string) => void] {
 }
 
 function Router() {
-  return <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/members" component={Home} />
-        <Route path="/contributions" component={Home} />
-        <Route path="/cash" component={Home} />
-        <Route path="/history" component={Home} />
-        <Route path="/reports" component={Home} />
-        <Route path="/statistics" component={Home} />
-        <Route path="/status" component={Home} />
-        <Route path="/announcements" component={Home} />
-        <Route path="/audit" component={Home} />
-        <Route path="/settings" component={Home} />
-        <Route path="/404" component={NotFound} />
-        <Route component={NotFound} />
-  </Switch>;
+  return (
+    <Switch>
+      <Route path="/" component={HomeRoute} />
+      <Route path="/members" component={HomeRoute} />
+      <Route path="/contributions" component={HomeRoute} />
+      <Route path="/cash" component={HomeRoute} />
+      <Route path="/history" component={HomeRoute} />
+      <Route path="/reports" component={HomeRoute} />
+      <Route path="/statistics" component={HomeRoute} />
+      <Route path="/status" component={HomeRoute} />
+      <Route path="/announcements" component={HomeRoute} />
+      <Route path="/audit" component={HomeRoute} />
+      <Route path="/settings" component={HomeRoute} />
+      <Route path="/404" component={NotFound} />
+      <Route component={NotFound} />
+    </Switch>
+  );
 }
 
 function App() {
-  return <ErrorBoundary><ThemeProvider defaultTheme="light" switchable><TooltipProvider><Toaster /><WouterRouter hook={useHashLocation}><DashboardLayout><Router /></DashboardLayout></WouterRouter></TooltipProvider></ThemeProvider></ErrorBoundary>;
+  return (
+    <ErrorBoundary>
+      <ThemeProvider defaultTheme="light" switchable>
+        <TooltipProvider>
+          <Toaster />
+          <WouterRouter hook={useHashLocation}>
+            <DashboardLayout>
+              <Router />
+            </DashboardLayout>
+          </WouterRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
+  );
 }
 
 export default App;

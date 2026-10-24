@@ -1,4 +1,4 @@
-const VERSION = "caisse-familiale-pwa-v8";
+const VERSION = "caisse-familiale-pwa-v9";
 const APP_CACHE = `${VERSION}-app`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const BASE_PATH = new URL("./", self.registration.scope).pathname;

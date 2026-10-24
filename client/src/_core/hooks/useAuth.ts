@@ -1,4 +1,4 @@
-import { firebaseAuth } from "@/lib/firebase";
+import { firebaseAuth } from "@/lib/firebaseAuth";
 import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut, updateProfile, type User as FirebaseUser } from "firebase/auth";
 import { useCallback, useEffect, useMemo, useState } from "react";
 type UseAuthOptions = { redirectOnUnauthenticated?: boolean; redirectPath?: string };

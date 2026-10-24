@@ -449,3 +449,32 @@ table tbody tr:hover { background-color: color-mix(in srgb, var(--primary) 5%, v
 @media (prefers-reduced-motion: reduce) {
   .dashboard-canvas main [class~="rounded-2xl"][class~="border"]:is([class~="bg-[#fffdf7]"], [class~="bg-[#f8faf7]"]) { transition: none; }
 }
+
+/* Graphique statistique : animation d’entrée en cascade et feedback au survol. */
+@keyframes statistics-bar-grow {
+  from { transform: scaleX(0); opacity: .55; }
+  to { transform: scaleX(1); opacity: 1; }
+}
+.statistics-chart-bar {
+  transform-origin: left center;
+  animation: statistics-bar-grow 680ms cubic-bezier(.2,.72,.2,1) both;
+  transition: width 520ms cubic-bezier(.2,.72,.2,1), filter 180ms ease, box-shadow 180ms ease;
+}
+@media (hover: hover) {
+  .statistics-chart-row:hover .statistics-chart-bar { filter: brightness(1.08) saturate(1.12); box-shadow: 0 0 14px color-mix(in srgb, currentColor 24%, transparent); }
+  .statistics-chart-row:hover .statistics-chart-track { background-color: color-mix(in srgb, var(--success-soft) 70%, var(--card)); }
+}
+
+/* Mobile : garder une seule colonne, éviter les débordements et faciliter le défilement des tableaux. */
+@media (max-width: 640px) {
+  .dashboard-canvas { width: 100%; min-width: 0; overflow-x: clip; }
+  .dashboard-canvas main, .dashboard-page-motion { width: 100%; min-width: 0; }
+  .dashboard-canvas main { padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); }
+  .dashboard-canvas > .sticky { padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); }
+  .dashboard-canvas main [class~="grid"] > * { min-width: 0; }
+  .dashboard-canvas main [class~="overflow-hidden"][class~="rounded-2xl"] { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+  .dashboard-canvas main input, .dashboard-canvas main textarea, .dashboard-canvas main select { min-width: 0; max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .statistics-chart-bar { animation: none; transition: none; }
+}
