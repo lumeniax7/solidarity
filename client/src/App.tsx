@@ -5,13 +5,14 @@ import NotFound from "@/pages/NotFound";
 import { Route, Router as WouterRouter, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import DashboardLayout from "./components/DashboardLayout";
+import { AppLoadingScreen } from "./components/DashboardLayoutSkeleton";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
 const Home = lazy(() => import("./pages/Home"));
 
 function HomeRoute() {
   return (
-    <Suspense fallback={<div role="status" aria-live="polite" className="dashboard-page-loading grid min-h-[40vh] place-items-center px-5 text-sm text-muted-foreground">Chargement de votre espace familial…</div>}>
+    <Suspense fallback={<AppLoadingScreen message="Préparation de votre espace familial…" />}>
       <Home />
     </Suspense>
   );

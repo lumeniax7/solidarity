@@ -161,6 +161,12 @@ function offlinePrecacheManifest(): Plugin {
       const files = Object.values(bundle)
         .filter((item) => item.type === "chunk" || /\.(css|svg|png|webp|avif|woff2?)$/i.test(item.fileName))
         .map((item) => item.fileName);
+      files.push(
+        "fonts/manrope-latin.woff2",
+        "fonts/manrope-latin-ext.woff2",
+        "fonts/playfair-latin.woff2",
+        "fonts/playfair-latin-ext.woff2",
+      );
       this.emitFile({
         type: "asset",
         fileName: "offline-assets.json",
@@ -170,7 +176,10 @@ function offlinePrecacheManifest(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector(), offlinePrecacheManifest()];
+const manusRuntime = vitePluginManusRuntime();
+manusRuntime.apply = "serve";
+
+const plugins = [react(), tailwindcss(), jsxLocPlugin(), manusRuntime, vitePluginManusDebugCollector(), offlinePrecacheManifest()];
 
 export default defineConfig({
   plugins,

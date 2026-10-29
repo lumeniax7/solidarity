@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { AppLoadingScreen } from "@/components/DashboardLayoutSkeleton";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -187,7 +188,7 @@ export default function Home() {
   const createAnnouncement = action(createAnnouncementSupabase, (queuedOffline) => { notifyMutation("Annonce publiée", queuedOffline); setAnnouncementOpen(false); refreshAfterMutation(queuedOffline); });
   const updateContribution = action(updateContributionSupabase, (queuedOffline) => { notifyMutation("Cotisation mensuelle mise à jour", queuedOffline); refreshAfterMutation(queuedOffline); });
 
-  if (snapshotLoading) return <div className="grid min-h-[70vh] place-items-center"><div className="flex items-center gap-3 text-sm text-[#718078]"><Loader2 className="h-5 w-5 animate-spin text-[#285d68]" />Chargement de la caisse…</div></div>;
+  if (snapshotLoading) return <AppLoadingScreen message="Chargement de la caisse…" />;
   if (snapshotError) return <div className="rounded-2xl border border-[#f2d4d0] bg-[#fff8f7] p-6 text-[#9a4942]">Impossible de charger les données. {snapshotError.message}</div>;
 
   const summary = data?.summary;

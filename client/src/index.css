@@ -3,6 +3,39 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: optional;
+  src: url("/fonts/manrope-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: optional;
+  src: url("/fonts/manrope-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Playfair Display";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: optional;
+  src: url("/fonts/playfair-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Playfair Display";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: optional;
+  src: url("/fonts/playfair-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -486,3 +519,76 @@ table tbody tr:hover { background-color: color-mix(in srgb, var(--primary) 5%, v
 @keyframes stats-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes stats-dot-in { from { opacity: 0; transform: scale(.4); transform-origin: center; } to { opacity: 1; transform: scale(1); transform-origin: center; } }
 @media (prefers-reduced-motion: reduce) { .stats-line { transition: none; stroke-dashoffset: 0; } .stats-chart-fade, .stats-chart-dot { animation: none; } }
+
+
+/* Premier rendu stable et chargement sobre. */
+.app-loading-screen {
+  display: grid;
+  min-height: 100svh;
+  width: 100%;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse 70% 60% at 8% 10%, color-mix(in srgb, var(--primary) 9%, transparent), transparent 74%),
+    var(--background);
+}
+.app-loading-content {
+  display: flex;
+  min-width: 200px;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  animation: boot-content-in 240ms ease-out both;
+}
+.app-loading-mark {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--border));
+  border-radius: 16px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--card) 84%, var(--primary));
+  box-shadow: 0 10px 28px -22px color-mix(in srgb, var(--primary) 65%, transparent);
+}
+.app-loading-brand {
+  margin-top: 3px;
+  color: var(--foreground);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .18em;
+}
+.app-loading-message {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.app-loading-track {
+  width: 104px;
+  height: 3px;
+  margin-top: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 12%, var(--border));
+}
+.app-loading-track > span {
+  display: block;
+  width: 42%;
+  height: 100%;
+  transform-origin: left center;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--primary) 72%, #dfbd76);
+  animation: boot-progress 1.9s cubic-bezier(.45, 0, .55, 1) infinite alternate;
+}
+.skeleton-soft { animation: skeleton-breathe 2.8s ease-in-out infinite; }
+@keyframes boot-content-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes boot-progress { from { transform: scaleX(.72); opacity: .72; } to { transform: scaleX(1.22); opacity: .92; } }
+@keyframes skeleton-breathe { 0%, 100% { opacity: .72; } 50% { opacity: .88; } }
+@media (prefers-reduced-motion: reduce) {
+  .app-loading-content { animation: none; }
+  .app-loading-track > span { animation: none; transform: scaleX(.85); }
+  .skeleton-soft { animation: none; opacity: .8; }
+}
+
+.auth-submit-spinner { animation: auth-submit-spin 1.45s linear infinite; }
+@keyframes auth-submit-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .auth-submit-spinner { animation: none; } }

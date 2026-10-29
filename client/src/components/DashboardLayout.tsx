@@ -63,6 +63,7 @@ const SIDEBAR_WIDTH_KEY = "sidebar-width";
 const DEFAULT_WIDTH = 268;
 const MIN_WIDTH = 220;
 const MAX_WIDTH = 400;
+const prefetchHome = () => { void import("@/pages/Home").catch(() => undefined); };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarWidth, setSidebarWidth] = useState(() => {
@@ -110,11 +111,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <p className="auth-intro">{authMode === "signin" ? "Connectez-vous pour retrouver votre espace en toute sécurité." : "Créez votre espace familial et suivez vos cotisations en toute simplicité."}</p>
             <form className="auth-form" onSubmit={async (event) => { event.preventDefault(); setAuthSubmitting(true); setAuthNotice(""); try { if (authMode === "signup") { const result = await signUp(authEmail, authPassword, authName); if (!result.session) setAuthNotice("Compte créé. Vérifiez votre e-mail pour confirmer l’inscription."); } else { await signIn(authEmail, authPassword); } } catch {} finally { setAuthSubmitting(false); } }}>
               {authMode === "signup" && <Input value={authName} onChange={(event) => setAuthName(event.target.value)} placeholder="Nom complet" required className="h-11 rounded-xl" />}
-              <Input type="text" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} placeholder="Identifiant" required className="h-11 rounded-xl" />
-              <Input type="password" value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} placeholder="Mot de passe" minLength={5} required className="h-11 rounded-xl" />
+              <Input type="text" value={authEmail} onFocus={prefetchHome} onChange={(event) => setAuthEmail(event.target.value)} placeholder="Identifiant" required className="h-11 rounded-xl" />
+              <Input type="password" value={authPassword} onFocus={prefetchHome} onChange={(event) => setAuthPassword(event.target.value)} placeholder="Mot de passe" minLength={5} required className="h-11 rounded-xl" />
               {(authError || undefined) && <p className="auth-message auth-error">{authError?.message}</p>}
               {authNotice && <p className="auth-message auth-success">{authNotice}</p>}
-              <Button type="submit" disabled={authSubmitting} size="lg" className="auth-submit w-full rounded-xl">{authSubmitting ? <span className="flex items-center justify-center gap-2"><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />Connexion…</span> : authMode === "signup" ? "Créer mon compte" : "Se connecter"}</Button>
+              <Button type="submit" disabled={authSubmitting} size="lg" className="auth-submit w-full rounded-xl">{authSubmitting ? <span className="flex items-center justify-center gap-2"><span className="auth-submit-spinner h-4 w-4 rounded-full border-2 border-white/40 border-t-white" />Connexion…</span> : authMode === "signup" ? "Créer mon compte" : "Se connecter"}</Button>
             </form>
             <div className="auth-switch-row">
               <span>{authMode === "signin" ? "Nouveau dans votre caisse ?" : "Vous avez déjà un compte ?"}</span>
