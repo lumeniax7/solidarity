@@ -1,10 +1,23 @@
-const VERSION = "caisse-familiale-pwa-v9";
+const VERSION = "caisse-familiale-pwa-v11";
 const APP_CACHE = `${VERSION}-app`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const BASE_PATH = new URL("./", self.registration.scope).pathname;
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(APP_CACHE).then((cache) => cache.add(`${BASE_PATH}index.html`)).catch(() => undefined));
+  event.waitUntil((async () => {
+    const cache = await caches.open(APP_CACHE);
+    const shellUrl = `${BASE_PATH}index.html`;
+    const shellResponse = await fetch(shellUrl, { cache: "no-store" });
+    if (shellResponse.ok) await cache.put(shellUrl, shellResponse.clone());
+
+    const manifestResponse = await fetch(`${BASE_PATH}offline-assets.json?version=${VERSION}`, { cache: "no-store" });
+    if (!manifestResponse.ok) return;
+    const files = await manifestResponse.json();
+    const assets = files
+      .filter((file) => typeof file === "string" && !file.startsWith("/") && !file.includes(".."))
+      .map((file) => `${BASE_PATH}${file}`);
+    await cache.addAll(assets);
+  })());
   self.skipWaiting();
 });
 
@@ -17,15 +30,16 @@ self.addEventListener("activate", (event) => {
 });
 
 async function cacheAsset(request) {
+  const appCache = await caches.open(APP_CACHE);
   const cache = await caches.open(ASSET_CACHE);
-  const cached = await cache.match(request);
+  const cached = await cache.match(request) || await appCache.match(request);
   if (cached) {
     void fetch(request).then((response) => { if (response.ok) void cache.put(request, response.clone()); }).catch(() => undefined);
     return cached;
   }
   try {
     const response = await fetch(request);
-    if (response.ok) void cache.put(request, response.clone());
+    if (response.ok) { void cache.put(request, response.clone()); void appCache.put(request, response.clone()); }
     return response;
   } catch {
     return Response.error();

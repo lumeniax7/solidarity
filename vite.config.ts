@@ -153,7 +153,24 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
+function offlinePrecacheManifest(): Plugin {
+  return {
+    name: "offline-precache-manifest",
+    apply: "build",
+    generateBundle(_options, bundle) {
+      const files = Object.values(bundle)
+        .filter((item) => item.type === "chunk" || /\.(css|svg|png|webp|avif|woff2?)$/i.test(item.fileName))
+        .map((item) => item.fileName);
+      this.emitFile({
+        type: "asset",
+        fileName: "offline-assets.json",
+        source: JSON.stringify(files),
+      });
+    },
+  };
+}
+
+const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector(), offlinePrecacheManifest()];
 
 export default defineConfig({
   plugins,
